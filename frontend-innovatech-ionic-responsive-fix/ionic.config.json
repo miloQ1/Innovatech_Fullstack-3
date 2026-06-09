@@ -1,0 +1,7 @@
+{
+  "name": "frontend-innovatech-ionic",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
+}

@@ -1,0 +1,80 @@
+:root {
+  --app-surface: #ffffff;
+  --app-border: #e2e8f0;
+  --app-muted: #64748b;
+  --app-soft: #eef2ff;
+  --app-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+}
+
+* { box-sizing: border-box; }
+
+body { background: var(--ion-background-color); }
+
+.app-content { --background: #f8fafc; }
+.auth-content { --background: linear-gradient(135deg, #eef2ff 0%, #f8fafc 48%, #ffffff 100%); }
+
+.page-shell { max-width: 1180px; margin: 0 auto; width: 100%; }
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.page-title { font-size: clamp(1.45rem, 4vw, 2rem); font-weight: 800; margin: 0; color: #0f172a; }
+.page-subtitle { margin: 6px 0 0; color: var(--app-muted); }
+
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin: 18px 0; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.button-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.inline-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.scroll-x { overflow-x: auto; padding-bottom: 8px; }
+
+.app-card { border: 1px solid var(--app-border); border-radius: 18px; box-shadow: var(--app-shadow); }
+.clickable { cursor: pointer; transition: transform 160ms ease, box-shadow 160ms ease; }
+.clickable:hover { transform: translateY(-2px); }
+.muted { color: var(--app-muted); }
+.badge-text { text-transform: uppercase; letter-spacing: .04em; font-size: .75rem; font-weight: 700; }
+
+.kanban-board { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 12px; min-height: 360px; }
+.kanban-column { min-width: 280px; max-width: 320px; flex: 0 0 300px; background: #f1f5f9; border: 1px solid var(--app-border); border-radius: 18px; padding: 12px; }
+.kanban-column.over { outline: 2px dashed var(--ion-color-primary); }
+.kanban-card { background: #fff; border: 1px solid var(--app-border); border-radius: 14px; margin: 10px 0; box-shadow: 0 8px 18px rgba(15, 23, 42, .06); cursor: pointer; }
+.kanban-card.dragging { opacity: .55; }
+
+.auth-card { width: min(460px, calc(100vw - 32px)); margin: 8vh auto 0; }
+.logo-badge { width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center; background: var(--ion-color-primary); color: white; font-weight: 900; margin: 0 auto 12px; }
+
+ion-card.app-card ion-card-title { font-weight: 800; }
+ion-item::part(native) { border-radius: 12px; }
+ion-menu ion-content { --background: #ffffff; }
+
+@media (max-width: 720px) {
+  .page-header { flex-direction: column; }
+  .button-row { width: 100%; }
+  .button-row ion-button { flex: 1; }
+}
+
+.list-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--app-border); }
+.list-row:last-child { border-bottom: 0; }
+
+
+/* Corrección responsive Ionic:
+   En esta app el menú debe comportarse igual en web y móvil: como overlay.
+   Así evitamos que en escritorio el IonSplitPane deje visible solo la barra lateral. */
+ion-split-pane {
+  --side-width: min(300px, 86vw);
+  --side-max-width: 300px;
+  --side-min-width: 260px;
+}
+
+ion-menu {
+  --width: min(300px, 86vw);
+}
+
+ion-router-outlet#main-content,
+#main-content {
+  width: 100%;
+  min-width: 0;
+}
+
+@media (min-width: 721px) {
+  .app-content .page-shell {
+    padding-top: 18px;
+  }
+}
