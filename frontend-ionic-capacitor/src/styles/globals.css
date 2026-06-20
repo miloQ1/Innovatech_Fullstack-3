@@ -1,0 +1,304 @@
+:root {
+  --app-surface: #ffffff;
+  --app-border: #e2e8f0;
+  --app-muted: #64748b;
+  --app-soft: #eef2ff;
+  --app-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+}
+
+* { box-sizing: border-box; }
+
+body { background: var(--ion-background-color); }
+
+.app-content { --background: #f8fafc; }
+.auth-content { --background: linear-gradient(135deg, #eef2ff 0%, #f8fafc 48%, #ffffff 100%); }
+
+.page-shell { max-width: 1180px; margin: 0 auto; width: 100%; }
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.page-title { font-size: clamp(1.45rem, 4vw, 2rem); font-weight: 800; margin: 0; color: #0f172a; }
+.page-title ion-icon { font-size: 0.8em; color: var(--ion-color-primary); vertical-align: -0.1em; margin-right: 10px; }
+.page-subtitle { margin: 6px 0 0; color: var(--app-muted); }
+
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin: 18px 0; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.button-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.inline-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.scroll-x { overflow-x: auto; padding-bottom: 8px; }
+
+.app-card { border: 1px solid var(--app-border); border-radius: 18px; box-shadow: var(--app-shadow); }
+.clickable { cursor: pointer; transition: transform 160ms ease, box-shadow 160ms ease; }
+.clickable:hover { transform: translateY(-2px); box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12); }
+.muted { color: var(--app-muted); }
+.badge-text { text-transform: uppercase; letter-spacing: .04em; font-size: .75rem; font-weight: 700; }
+
+/* Icon badges used in stat cards, section titles and empty states */
+.icon-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-size: 1.4rem;
+}
+.icon-badge.tone-indigo { background: #eef2ff; color: #4f46e5; }
+.icon-badge.tone-green { background: #ecfdf5; color: #059669; }
+.icon-badge.tone-amber { background: #fffbeb; color: #d97706; }
+.icon-badge.tone-blue { background: #eff6ff; color: #2563eb; }
+.icon-badge.tone-rose { background: #fef2f2; color: #dc2626; }
+.icon-badge.tone-slate { background: #f1f5f9; color: #475569; }
+
+/* Stat cards with leading icon badge */
+.stat-card { display: flex; align-items: center; gap: 14px; text-align: left !important; }
+.stat-card .stat-body { display: flex; flex-direction: column; min-width: 0; }
+.stat-card .stat-value { font-size: 1.7rem; font-weight: 800; line-height: 1.1; color: #0f172a; margin: 0; }
+.stat-card .stat-label { margin: 2px 0 0; color: var(--app-muted); font-size: .85rem; }
+
+/* Section titles with leading icon */
+.section-title { display: flex; align-items: center; gap: 10px; }
+.section-title ion-icon { font-size: 1.15rem; color: var(--ion-color-primary); flex-shrink: 0; }
+
+/* Empty state icon circle */
+.empty-state-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background: var(--app-soft);
+  color: var(--ion-color-primary);
+  display: grid;
+  place-items: center;
+  font-size: 1.75rem;
+  margin: 0 auto 14px;
+}
+
+.kanban-board { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 12px; min-height: 360px; align-items: flex-start; }
+.kanban-column { min-width: 280px; max-width: 320px; flex: 0 0 300px; background: #f1f5f9; border: 1px solid var(--app-border); border-radius: 18px; padding: 12px; transition: background 160ms ease, outline 120ms ease; }
+.kanban-column.over { outline: 2px dashed var(--ion-color-primary); background: #eef2ff; }
+.kanban-card { background: #fff; border: 1px solid var(--app-border); border-radius: 14px; margin: 10px 0; padding: 12px 14px; box-shadow: 0 2px 8px rgba(15, 23, 42, .06); cursor: grab; user-select: none; transition: box-shadow 160ms ease, opacity 160ms ease, transform 160ms ease; }
+.kanban-card:hover { box-shadow: 0 6px 18px rgba(15, 23, 42, .12); transform: translateY(-1px); }
+.kanban-card:active { cursor: grabbing; }
+.kanban-card.dragging { opacity: .35; box-shadow: none; transform: rotate(1.5deg); }
+.kanban-card-code { margin: 0 0 4px; font-size: .72rem; color: var(--app-muted); font-family: monospace; }
+.kanban-card-title { font-weight: 600; font-size: .9rem; margin: 0 0 4px; color: #0f172a; }
+.kanban-card-desc { font-size: .8rem; color: var(--app-muted); margin: 0 0 6px; }
+.kanban-card-footer { display: flex; align-items: center; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.kanban-col-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.kanban-col-name { font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.auth-card { width: min(460px, calc(100vw - 32px)); margin: 8vh auto 0; }
+.logo-badge { width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center; background: var(--ion-color-primary); color: white; font-weight: 900; margin: 0 auto 12px; }
+
+ion-card.app-card ion-card-title { font-weight: 800; }
+ion-item::part(native) { border-radius: 12px; }
+ion-menu ion-content { --background: #ffffff; }
+
+@media (max-width: 720px) {
+  .page-header { flex-direction: column; }
+  .button-row { width: 100%; }
+  .button-row ion-button { flex: 1; }
+}
+
+.list-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--app-border); }
+.list-row:last-child { border-bottom: 0; }
+
+.accent-card { border-top: 3px solid var(--ion-color-primary) !important; }
+
+.card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.card-title-main { flex: 1; min-width: 0; }
+
+.card-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.card-info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: var(--app-muted);
+}
+
+.card-info-row ion-icon {
+  font-size: 1rem;
+  color: var(--ion-color-primary);
+  flex-shrink: 0;
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+  border-top: 1px solid var(--app-border);
+  padding-top: 14px;
+  margin-top: 14px;
+}
+
+.resource-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: var(--app-soft);
+  display: grid;
+  place-items: center;
+  color: var(--ion-color-primary);
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.member-avatar {
+  background: var(--app-soft);
+  display: grid;
+  place-items: center;
+  color: var(--ion-color-primary);
+  font-weight: 800;
+}
+
+.member-item ion-label h2 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap !important;
+}
+
+.member-detail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 24px 24px;
+  gap: 10px;
+}
+
+.member-detail-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 24px;
+  background: var(--app-soft);
+  display: grid;
+  place-items: center;
+  color: var(--ion-color-primary);
+  font-weight: 800;
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.member-detail-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--ion-text-color);
+}
+
+.sidebar-brand {
+  padding: 20px 16px 14px;
+  border-bottom: 1px solid var(--app-border);
+  margin-bottom: 4px;
+}
+
+.sidebar-brand-name {
+  display: block;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--ion-color-primary);
+}
+
+.sidebar-brand-sub {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--app-muted);
+  margin-top: 2px;
+}
+
+.sidebar-section-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--app-muted);
+  padding: 16px 16px 4px;
+  margin: 0;
+}
+
+.sidebar-link {
+  --padding-start: 16px;
+  --inner-padding-end: 12px;
+  --background: transparent;
+  --color: #334155;
+  margin: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.sidebar-link ion-icon {
+  color: var(--app-muted);
+  font-size: 1.15rem;
+  margin-inline-end: 4px;
+}
+
+.sidebar-link.active-link {
+  --background: var(--app-soft);
+  --color: var(--ion-color-primary);
+}
+
+.sidebar-link.active-link ion-icon {
+  color: var(--ion-color-primary);
+}
+
+.navbar-link {
+  --color: var(--app-muted);
+  font-weight: 600;
+}
+
+.navbar-link ion-icon {
+  margin-inline-end: 6px;
+  font-size: 1.05rem;
+}
+
+.navbar-link.active-link {
+  --color: var(--ion-color-primary);
+}
+
+.user-avatar {
+  width: 34px;
+  height: 34px;
+  margin-inline: 8px;
+  background: var(--app-soft);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  color: var(--ion-color-primary);
+  font-size: 0.85rem;
+}
+
+
+/* Corrección responsive Ionic:
+   En esta app el menú debe comportarse igual en web y móvil: como overlay.
+   Así evitamos que en escritorio el IonSplitPane deje visible solo la barra lateral. */
+ion-split-pane {
+  --side-width: min(300px, 86vw);
+  --side-max-width: 300px;
+  --side-min-width: 260px;
+}
+
+ion-menu {
+  --width: min(300px, 86vw);
+}
+
+ion-router-outlet#main-content,
+#main-content {
+  width: 100%;
+  min-width: 0;
+}
+
+@media (min-width: 721px) {
+  .app-content .page-shell {
+    padding-top: 18px;
+  }
+}

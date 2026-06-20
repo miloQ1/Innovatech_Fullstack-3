@@ -1,0 +1,113 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: innovatech-mysql
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_ROOT_HOST: "%"
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  eureka-server:
+    build: ./eureka-server
+    container_name: innovatech-eureka-server
+    ports:
+      - "8761:8761"
+
+  auth-service:
+    build: ./authService-Innovatech
+    container_name: innovatech-auth-service
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/auth_db?useSSL=false&serverTimezone=America/Santiago
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+
+  proyects-service:
+    build: ./proyectsService-Innovatech
+    container_name: innovatech-proyects-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/proyectos_db?useSSL=false&serverTimezone=America/Santiago
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+
+  ms-recursos:
+    build: ./ms_recursos_innovatech
+    container_name: innovatech-ms-recursos
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/recursos_db?useSSL=false&serverTimezone=America/Santiago
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+
+  ms-colaboracion:
+    build: ./ms_colaboracion_innovatech
+    container_name: innovatech-ms-colaboracion
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/colaboracion_db?useSSL=false&serverTimezone=America/Santiago
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+
+  notificaciones:
+    build: ./notificaciones/notificaciones
+    container_name: innovatech-notificaciones
+    ports:
+      - "8085:8085"
+    environment:
+      SERVER_PORT: 8085
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/notificaciones_db?useSSL=false&serverTimezone=America/Santiago
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  bff-gateway:
+    build: ./bffGateway
+    container_name: innovatech-bff-gateway
+    ports:
+      - "8090:8090"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      eureka-server:
+        condition: service_started
+      auth-service:
+        condition: service_started
+      proyects-service:
+        condition: service_started
+      ms-recursos:
+        condition: service_started
+      ms-colaboracion:
+        condition: service_started
+
+volumes:
+  mysql_data:
