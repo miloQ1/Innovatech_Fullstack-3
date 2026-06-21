@@ -21,11 +21,12 @@ import { getProfessionalId } from '../../utils/ids';
 
 interface ProfessionalModalProps {
   professional: Professional | null;
+  initialData?: Partial<Professional> | null;
   onClose: () => void;
   onSave: () => void;
 }
 
-export function ProfessionalModal({ professional, onClose, onSave }: ProfessionalModalProps) {
+export function ProfessionalModal({ professional, initialData, onClose, onSave }: ProfessionalModalProps) {
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -42,21 +43,20 @@ export function ProfessionalModal({ professional, onClose, onSave }: Professiona
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (professional) {
-      setForm({
-        firstName: professional.firstName ?? '',
-        lastName: professional.lastName ?? '',
-        email: professional.email ?? '',
-        employeeCode: professional.employeeCode ?? '',
-        roleName: professional.roleName ?? '',
-        seniority: String(professional.seniority ?? 'MID'),
-        location: professional.location ?? '',
-        timeZone: professional.timeZone ?? 'America/Santiago',
-        weeklyCapacityHours: professional.weeklyCapacityHours ?? 40,
-        status: String(professional.status ?? 'ACTIVE'),
-      });
-    }
-  }, [professional]);
+    const source = professional ?? initialData;
+    setForm({
+      firstName: source?.firstName ?? '',
+      lastName: source?.lastName ?? '',
+      email: source?.email ?? '',
+      employeeCode: source?.employeeCode ?? '',
+      roleName: source?.roleName ?? '',
+      seniority: String(source?.seniority ?? 'MID'),
+      location: source?.location ?? '',
+      timeZone: source?.timeZone ?? 'America/Santiago',
+      weeklyCapacityHours: source?.weeklyCapacityHours ?? 40,
+      status: String(source?.status ?? 'ACTIVE'),
+    });
+  }, [professional, initialData]);
 
   const setField = (name: keyof typeof form, value: string | number) => setForm((previous) => ({ ...previous, [name]: value }));
 

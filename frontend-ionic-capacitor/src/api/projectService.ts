@@ -2,7 +2,6 @@ import type {
   Client, Project, Phase, Task,
   CreateClientRequest, CreateProjectRequest,
   CreatePhaseRequest, CreateTaskRequest,
-  ProjectMember, AddMemberRequest,
   TaskStatus, BoardColumn, CreateColumnRequest,
   UpdateTaskRequest
 } from '../types/projects';
@@ -93,19 +92,6 @@ export const taskService = {
   },
   deleteTask(id: number): Promise<void> {
     return apiClient.delete<void>(`/api/tasks/${id}`, true);
-  },
-};
-
-// ── Members ───────────────────────────────────────────
-export const memberService = {
-  getByProject(projectId: number): Promise<ProjectMember[]> {
-    return apiClient.get<ProjectMember[]>(`/api/projects/${projectId}/members`, true);
-  },
-  add(projectId: number, data: AddMemberRequest): Promise<ProjectMember> {
-    return apiClient.post<ProjectMember>(`/api/projects/${projectId}/members`, data, true);
-  },
-  remove(projectId: number, userId: string): Promise<void> {
-    return apiClient.delete<void>(`/api/projects/${projectId}/members/${userId}`, true);
   },
 };
 

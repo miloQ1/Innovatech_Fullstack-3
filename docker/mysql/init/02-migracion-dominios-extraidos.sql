@@ -1,0 +1,5 @@
+-- Migración opcional para ambientes que ya tengan datos creados en los schemas antiguos.
+-- MySQL ejecuta estos scripts antes de que Hibernate cree/actualice tablas, por eso se deja como referencia operativa.
+-- Si ya existen las tablas en ambos schemas, ejecutar manualmente:
+-- INSERT INTO clientes_db.clients SELECT * FROM proyectos_db.clients;
+-- INSERT INTO asignaciones_db.assignments SELECT * FROM recursos_db.assignments;

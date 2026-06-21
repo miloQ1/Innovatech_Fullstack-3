@@ -19,13 +19,15 @@ import {
   IonTextarea,
 } from '@ionic/react';
 import { apiClient } from '../api/apiClient';
-import { memberService, phaseService, projectService, taskService } from '../api/projectService';
-import { MembersTab } from '../components/projects/tabs/MembersTab';
+import { phaseService, projectService, taskService } from '../api/projectService';
+import { assignmentService, professionalService } from '../api/resourcesService';
 import { OverviewTab } from '../components/projects/tabs/OverviewTab';
 import { PhasesTab } from '../components/projects/tabs/PhasesTab';
+import { AssignmentsTab } from '../components/projects/tabs/AssignmentsTab';
 import { PhaseBoard } from '../components/projects/PhaseBoard';
 import { ConfirmModal } from '../components/shared/ConfirmModal';
-import type { Phase, Project, ProjectMember, ProjectStatus, Task } from '../types/projects';
+import type { Phase, Project, ProjectStatus, Task } from '../types/projects';
+import type { Assignment, Professional } from '../types/resources';
 import { blurActiveElement, getClientId, toNumericId } from '../utils/ids';
 
 const projectStatuses: ProjectStatus[] = ['IN_PROGRESS', 'ON_HOLD', 'COMPLETED', 'CANCELLED'];
@@ -44,7 +46,8 @@ export function ProjectDetailPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [phases, setPhases] = useState<Phase[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [members, setMembers] = useState<ProjectMember[]>([]);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
@@ -70,11 +73,12 @@ export function ProjectDetailPage() {
     setError(null);
     setWarning(null);
 
-    const [projectResult, phaseResult, taskResult, memberResult] = await Promise.allSettled([
+    const [projectResult, phaseResult, taskResult, assignmentResult, professionalResult] = await Promise.allSettled([
       projectService.getById(projectId),
       phaseService.getByProject(projectId),
       taskService.getByProject(projectId),
-      memberService.getByProject(projectId),
+      assignmentService.getByProject(projectId),
+      professionalService.getAll(),
     ]);
 
     if (projectResult.status === 'fulfilled') {
@@ -109,11 +113,18 @@ export function ProjectDetailPage() {
       warnings.push('tareas');
     }
 
-    if (memberResult.status === 'fulfilled') {
-      setMembers(memberResult.value);
+    if (assignmentResult.status === 'fulfilled') {
+      setAssignments(assignmentResult.value);
     } else {
-      setMembers([]);
-      warnings.push('miembros');
+      setAssignments([]);
+      warnings.push('asignaciones');
+    }
+
+    if (professionalResult.status === 'fulfilled') {
+      setProfessionals(professionalResult.value);
+    } else {
+      setProfessionals([]);
+      warnings.push('profesionales');
     }
 
     if (warnings.length > 0) setWarning(`No se pudieron cargar: ${warnings.join(', ')}. Revisa que las rutas estén expuestas en el BFF.`);
@@ -220,7 +231,7 @@ export function ProjectDetailPage() {
       <div className="page-header ion-margin-top">
         <div>
           <h1 className="page-title">{project.name}</h1>
-          <p className="page-subtitle">#{project.code} · {tasks.length} tareas · {members.length} miembros</p>
+          <p className="page-subtitle">#{project.code} · {tasks.length} tareas · {assignments.length} asignaciones</p>
         </div>
         <div className="button-row">
           <IonBadge color={statusColor(project.status)}>{formatStatus(project.status)}</IonBadge>
@@ -268,7 +279,7 @@ export function ProjectDetailPage() {
         <IonSegmentButton value="overview">Resumen</IonSegmentButton>
         <IonSegmentButton value="phases">Fases ({phases.length})</IonSegmentButton>
         {phases.map((phase) => <IonSegmentButton key={phase.phaseId} value={String(phase.phaseId)}>{phase.name}</IonSegmentButton>)}
-        <IonSegmentButton value="members">Miembros ({members.length})</IonSegmentButton>
+        <IonSegmentButton value="assignments">Asignaciones ({assignments.length})</IonSegmentButton>
       </IonSegment>
 
       <div className="button-row ion-margin-top">
@@ -291,7 +302,7 @@ export function ProjectDetailPage() {
       <div className="ion-margin-top">
         {activeTab === 'overview' && <OverviewTab project={project} phases={phases} tasks={tasks} onTabChange={setActiveTab} />}
         {activeTab === 'phases' && <PhasesTab phases={phases} tasks={tasks} projectId={projectId} onReload={loadData} onTabChange={setActiveTab} />}
-        {activeTab === 'members' && <MembersTab members={members} projectId={projectId} onReload={loadData} />}
+        {activeTab === 'assignments' && <AssignmentsTab projectId={projectId} assignments={assignments} professionals={professionals} onReload={loadData} />}
         {activePhase && <PhaseBoard phase={activePhase} tasks={phaseTasks} projectId={projectId} onTasksChange={loadData} />}
       </div>
 

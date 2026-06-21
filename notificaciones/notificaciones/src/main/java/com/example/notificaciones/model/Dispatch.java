@@ -34,6 +34,12 @@ public class Dispatch {
     @Column(name = "delivery_status", nullable = false, length = 20)
     private DeliveryStatus deliveryStatus;
 
+    @Column(name = "rendered_subject", length = 255)
+    private String renderedSubject;
+
+    @Column(name = "rendered_body", columnDefinition = "TEXT")
+    private String renderedBody;
+
     @Column(name = "retry_count", nullable = false)
     private Integer retryCount;
 
@@ -91,6 +97,22 @@ public class Dispatch {
 
     public void setDeliveryStatus(DeliveryStatus deliveryStatus) {
         this.deliveryStatus = deliveryStatus;
+    }
+
+    public String getRenderedSubject() {
+        return renderedSubject;
+    }
+
+    public void setRenderedSubject(String renderedSubject) {
+        this.renderedSubject = renderedSubject;
+    }
+
+    public String getRenderedBody() {
+        return renderedBody;
+    }
+
+    public void setRenderedBody(String renderedBody) {
+        this.renderedBody = renderedBody;
     }
 
     public Integer getRetryCount() {

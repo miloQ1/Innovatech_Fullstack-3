@@ -1,0 +1,17 @@
+package cl.innovatech.ms_clientes.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+
+@Configuration
+public class SecurityBeansConfig {
+
+    @Bean
+    public UserDetailsService userDetailsService() {
+        return username -> {
+            throw new UsernameNotFoundException("No UserDetailsService activo");
+        };
+    }
+}

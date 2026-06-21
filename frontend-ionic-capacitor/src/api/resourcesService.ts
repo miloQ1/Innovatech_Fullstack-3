@@ -2,6 +2,7 @@ import { BACKEND_ROUTES } from '../config/backend';
 import type {
   Absence,
   Assignment,
+  AssignmentRequest,
   Availability,
   Professional,
   ProfessionalRequest,
@@ -63,10 +64,10 @@ export const assignmentService = {
   getByResource(resourceId: number): Promise<Assignment[]> {
     return apiClient.get<Assignment[]>(`${BACKEND_ROUTES.assignments}/resource/${resourceId}`, true);
   },
-  create(data: Partial<Assignment>): Promise<Assignment> {
+  create(data: AssignmentRequest): Promise<Assignment> {
     return apiClient.post<Assignment>(BACKEND_ROUTES.assignments, data, true);
   },
-  update(id: number, data: Partial<Assignment>): Promise<Assignment> {
+  update(id: number, data: Partial<AssignmentRequest>): Promise<Assignment> {
     return apiClient.put<Assignment>(`${BACKEND_ROUTES.assignments}/${id}`, data, true);
   },
   delete(id: number): Promise<void> {
@@ -112,9 +113,9 @@ export const absenceService = {
 
 export const resourceSkillService = {
   getAll(): Promise<ResourceSkill[]> {
-    return apiClient.get<ResourceSkill[]>('/api/resource-skills', true);
+    return apiClient.get<ResourceSkill[]>(BACKEND_ROUTES.resourceSkills, true);
   },
   getByResource(resourceId: number): Promise<ResourceSkill[]> {
-    return apiClient.get<ResourceSkill[]>(`/api/resource-skills/resource/${resourceId}`, true);
+    return apiClient.get<ResourceSkill[]>(`${BACKEND_ROUTES.resourceSkills}/resource/${resourceId}`, true);
   },
 };

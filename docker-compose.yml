@@ -50,6 +50,21 @@ services:
       eureka-server:
         condition: service_started
 
+  ms-clientes:
+    build: ./ms-clientes
+    container_name: innovatech-ms-clientes
+    ports:
+      - "8087:8087"
+    environment:
+      SERVER_PORT: 8087
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/clientes_db?useSSL=false&serverTimezone=America/Santiago
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+
   ms-recursos:
     build: ./ms_recursos_innovatech
     container_name: innovatech-ms-recursos
@@ -57,6 +72,21 @@ services:
       - "8083:8083"
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/recursos_db?useSSL=false&serverTimezone=America/Santiago
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+
+  ms-asignaciones:
+    build: ./ms-asignaciones
+    container_name: innovatech-ms-asignaciones
+    ports:
+      - "8091:8091"
+    environment:
+      SERVER_PORT: 8091
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/asignaciones_db?useSSL=false&serverTimezone=America/Santiago
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
     depends_on:
       mysql:
@@ -78,6 +108,36 @@ services:
       eureka-server:
         condition: service_started
 
+  ms-archivos:
+    build: ./ms-archivos
+    container_name: innovatech-ms-archivos
+    ports:
+      - "8088:8088"
+    environment:
+      SERVER_PORT: 8088
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/archivos_db?useSSL=false&serverTimezone=America/Santiago
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+
+  ms-auditoria:
+    build: ./ms-auditoria
+    container_name: innovatech-ms-auditoria
+    ports:
+      - "8089:8089"
+    environment:
+      SERVER_PORT: 8089
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/auditoria_db?useSSL=false&serverTimezone=America/Santiago
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+
   notificaciones:
     build: ./notificaciones/notificaciones
     container_name: innovatech-notificaciones
@@ -86,17 +146,6 @@ services:
     environment:
       SERVER_PORT: 8085
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/notificaciones_db?useSSL=false&serverTimezone=America/Santiago
-    depends_on:
-      mysql:
-        condition: service_healthy
-
-  analitica-service:
-    build: ./AnaliticaInnovatech-main
-    container_name: innovatech-analitica-service
-    ports:
-      - "8086:8086"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/analitica_db?useSSL=false&serverTimezone=America/Santiago
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
     depends_on:
       mysql:
@@ -118,11 +167,19 @@ services:
         condition: service_started
       proyects-service:
         condition: service_started
+      ms-clientes:
+        condition: service_started
       ms-recursos:
+        condition: service_started
+      ms-asignaciones:
         condition: service_started
       ms-colaboracion:
         condition: service_started
-      analitica-service:
+      ms-archivos:
+        condition: service_started
+      ms-auditoria:
+        condition: service_started
+      notificaciones:
         condition: service_started
 
 volumes:

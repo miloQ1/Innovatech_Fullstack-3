@@ -2,15 +2,11 @@ package cl.innovatech.servicio_proyectos.service;
 
 import java.util.List;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
-import cl.innovatech.servicio_proyectos.model.Client;
 import cl.innovatech.servicio_proyectos.model.Project;
 import cl.innovatech.servicio_proyectos.model.ProjectMember;
 import cl.innovatech.servicio_proyectos.model.enums.ProjectStatus;
-import cl.innovatech.servicio_proyectos.repository.ClientRepository;
 import cl.innovatech.servicio_proyectos.repository.ProjectMemberRepository;
 import cl.innovatech.servicio_proyectos.repository.ProjectRepository;
 import cl.innovatech.servicio_proyectos.util.UserContext;
@@ -20,20 +16,15 @@ public class ProjectService {
 
     private final ProjectMemberRepository projectMemberRepository;
     private final ProjectRepository projectRepository;
-    private final ClientRepository clientRepository;
 
     public ProjectService(ProjectRepository projectRepository,
-                      ClientRepository clientRepository,
                       ProjectMemberRepository projectMemberRepository) {
     this.projectRepository = projectRepository;
-    this.clientRepository = clientRepository;
     this.projectMemberRepository = projectMemberRepository;
 }
 
     public Project createProject(Long clientId, Project project, String userName) {
-        Client client = clientRepository.findById(clientId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente no encontrado"));
-        project.setClient(client);
+        project.setClientId(clientId);
         project.setCreatedBy(UserContext.getCurrentUserId());
         Project saved = projectRepository.save(project);
 
@@ -62,7 +53,7 @@ public class ProjectService {
     System.out.println("=== userId: " + UserContext.getCurrentUserId());
     
     String userId = UserContext.getCurrentUserId();
-    List<Project> allProjects = projectRepository.findByClientClientId(clientId);
+    List<Project> allProjects = projectRepository.findByClientId(clientId);
     System.out.println("=== proyectos encontrados: " + allProjects.size());
     
     if (userId == null) return List.of();

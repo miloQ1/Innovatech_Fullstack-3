@@ -49,9 +49,6 @@ public class Comment {
     @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Mention> mentions = new ArrayList<>();
 
-    @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Attachment> attachments = new ArrayList<>();
-
     public Comment() {
     }
 
@@ -137,13 +134,5 @@ public class Comment {
 
     public void setMentions(List<Mention> mentions) {
         this.mentions = mentions;
-    }
-
-    public List<Attachment> getAttachments() {
-        return attachments;
-    }
-
-    public void setAttachments(List<Attachment> attachments) {
-        this.attachments = attachments;
     }
 }
