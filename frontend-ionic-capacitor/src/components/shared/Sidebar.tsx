@@ -9,7 +9,7 @@ import {
   IonMenu,
   IonMenuToggle,
 } from '@ionic/react';
-import { businessOutline, folderOpenOutline, gridOutline, peopleOutline } from 'ionicons/icons';
+import { businessOutline, folderOpenOutline, gridOutline, peopleOutline, statsChartOutline } from 'ionicons/icons';
 import type { Client, Project } from '../../types/projects';
 import { clientService, projectService } from '../../api/projectService';
 import { useAuth } from '../../hooks/useAuth';
@@ -79,6 +79,10 @@ export function Sidebar() {
             <IonItem className={`sidebar-link ${isActive('/resources') ? 'active-link' : ''}`} button detail={false} routerLink="/resources" routerDirection="root">
               <IonIcon icon={peopleOutline} slot="start" />
               <IonLabel>Recursos</IonLabel>
+            </IonItem>
+            <IonItem className={`sidebar-link ${isActive('/analytics') ? 'active-link' : ''}`} button detail={false} routerLink="/analytics" routerDirection="root">
+              <IonIcon icon={statsChartOutline} slot="start" />
+              <IonLabel>Analítica</IonLabel>
             </IonItem>
           </IonMenuToggle>
 

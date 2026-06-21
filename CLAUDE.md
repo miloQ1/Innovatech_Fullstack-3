@@ -19,7 +19,7 @@ Innovatech is a microservices platform for managing academic/tech collaborative 
 | `ms_recursos_innovatech/` | HR resources: professionals, skills, assignments, availability, absences | 8083 | `recursos_db` | Spring Boot, Spring Data JPA, MySQL |
 | `ms_colaboracion_innovatech/` | Collaboration: threads, comments, mentions, activity logs, attachments | 8084 | `colaboracion_db` | Spring Boot, Spring Data JPA, MySQL |
 | `notificaciones/notificaciones/` | Notifications service | (no port set) | `notificaciones_db` | Spring Boot, MySQL |
-| `analitica_Innovatech-main/recursos_Innovatech-main/` | Analytics (KPIs/snapshots/widgets) — referenced by the gateway as `analitica-service` | — | — | Currently empty in the working tree (all files deleted, uncommitted) |
+| `AnaliticaInnovatech-main/` | Analytics: KPI definitions, KPI snapshots, widgets, alert rules, dashboard layouts/layout items | 8086 | `analitica_db` | Spring Boot 3.5.14, Spring Data JPA, MySQL |
 | `frontend-ionic-capacitor/` | **Active** frontend — Ionic React + Vite + Capacitor, talks to the BFF | 5173 (dev) | — | React 18, Ionic React 8, Vite 7, TS |
 | `reactFrontend-Innovatech/` | Earlier mockup ("EduTech") SPA using mocked data, kept for reference | 5173 (dev) | — | React 19, Vite 8, TS |
 
@@ -27,11 +27,26 @@ All Java services use Java 17 and Maven (via the `mvnw`/`mvnw.cmd` wrapper in ea
 
 ## Running the platform locally
 
+### Option A: Docker Compose (backend only)
+
+`docker-compose.yml` at the repo root builds and runs MySQL + every backend service (not the frontend) on a shared network, with correct startup ordering via `depends_on`/healthchecks:
+
+```bash
+docker compose up --build
+```
+
+- MySQL runs on host port `3307` (container port `3306`); `docker/mysql/init/01-init-databases.sql` auto-creates all six schemas (`auth_db`, `proyectos_db`, `recursos_db`, `colaboracion_db`, `notificaciones_db`, `analitica_db`) on first boot.
+- Inside the compose network each service's `SPRING_DATASOURCE_URL` is overridden via environment to point at `mysql:3306`; `EUREKA_CLIENT_SERVICEURL_DEFAULTZONE` is overridden to `http://eureka-server:8761/eureka/`.
+- `notificaciones` gets `SERVER_PORT=8085` injected here (its `application.properties` has no port set otherwise) and is exposed on host `8085`, but it is still **not** wired into the gateway routes (see Known gaps).
+- After compose is up, run the frontend separately (`npm run dev` in `frontend-ionic-capacitor/`) — it talks to the gateway on `localhost:8090` same as in manual mode.
+
+### Option B: Manual, per-service
+
 Startup order matters because of Eureka registration and the gateway's load-balanced (`lb://`) routes:
 
-1. **MySQL** — create the schemas listed above (each service uses `spring.jpa.hibernate.ddl-auto=update`, so tables are created automatically once the schema exists). Default credentials in every `application.properties` are `root` with an empty password, connecting to `localhost:3306`.
+1. **MySQL** — create the schemas listed above (each service uses `spring.jpa.hibernate.ddl-auto=update`, so tables are created automatically once the schema exists). Default credentials in every `application.properties` are `root` with an empty password, connecting to `localhost:3306`. You can reuse `docker/mysql/init/01-init-databases.sql` against a local MySQL instance instead of typing the `CREATE DATABASE` statements by hand.
 2. **`eureka-server`** (port 8761) — must be up before other services register.
-3. Backend microservices, any order: `authService-Innovatech` (8080), `proyectsService-Innovatech` (8081), `ms_recursos_innovatech` (8083), `ms_colaboracion_innovatech` (8084).
+3. Backend microservices, any order: `authService-Innovatech` (8080), `proyectsService-Innovatech` (8081), `ms_recursos_innovatech` (8083), `ms_colaboracion_innovatech` (8084), `AnaliticaInnovatech-main` (8086).
 4. **`bffGateway`** (8090) — routes by Eureka service name (`auth-service`, `servicio-proyectos`, `ms-recursos`, `ms-colaboracion`, `analitica-service`), so it must come up after the services it proxies have registered.
 5. **`frontend-ionic-capacitor`** — dev server proxies `/api` to the gateway on 8090.
 
@@ -59,6 +74,7 @@ Each microservice follows a layered package structure: `controller/` → `servic
 - `ms_recursos_innovatech`: `com.example.ms_recursos_innovatech`
 - `ms_colaboracion_innovatech`: `com.example.ms_colaboracion_innovatech`
 - `notificaciones`: `com.example.notificaciones`
+- `AnaliticaInnovatech-main`: `com.innovatech.analitica`
 - `bffGateway`: `cl.duoc.bffGateway`
 
 Entity IDs vary by service: `authService` uses prefixed UUID strings (`USR-...`, `RFT-...`, `AUD-...`); `proyectsService`, `ms_recursos_innovatech`, and `ms_colaboracion_innovatech` use auto-incrementing `Long` IDs. Cross-service references (e.g. `assignedResourceId`, `projectManagerId`, `authorResourceId`) are stored as plain foreign-key-style IDs with no DB-level FK — there is no cross-database join, services are independent.
@@ -88,6 +104,6 @@ For Capacitor/Android, set `VITE_API_BASE_URL` (e.g. `http://10.0.2.2:8090` for 
 
 ## Known gaps / in-flux areas
 
-- The analytics microservice (`analitica-service` in the gateway routes, for `/api/kpis/**`, `/api/snapshots/**`, `/api/widgets/**`) has no source code currently checked out under `analitica_Innovatech-main/`.
-- `notificaciones/notificaciones` has no `server.port` set and is not wired into the BFF gateway routes yet.
+- `AnaliticaInnovatech-main` (`analitica-service`) has no Docker registry/CI wiring beyond the local `docker-compose.yml` entry, and the frontend only has the data layer (`api/analyticsService.ts`, `types/analytics.ts`) for KPIs/snapshots/widgets — no dashboard UI pages consume it yet. `AlertRuleController` (`/api/alerts`), `DashboardLayoutController` (`/api/layouts`) and `LayoutItemController` (`/api/layout-items`) have gateway routes but no frontend service module yet.
+- `notificaciones/notificaciones` has no `server.port` set and is not wired into the BFF gateway routes yet (only gets a port via the `docker-compose.yml` override).
 - `ms_colaboracion_innovatech` also exposes `/api/attachments`, `/api/mentions`, `/api/resource-skills` and `/api/activity-logs` (note the gateway route for activity is `/api/activity/**`, not `/api/activity-logs/**`) that aren't all covered by gateway routes — check `bffGateway/src/main/resources/application.properties` before assuming a frontend call will reach the backend.
