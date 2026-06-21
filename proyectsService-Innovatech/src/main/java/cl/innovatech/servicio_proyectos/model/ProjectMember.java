@@ -1,5 +1,6 @@
 package cl.innovatech.servicio_proyectos.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
@@ -23,6 +24,7 @@ public class ProjectMember {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;

@@ -131,3 +131,24 @@ http://localhost:8084
 http://localhost:8090
 ```
 
+
+## Ajuste posterior al split de microservicios
+
+Esta versión del frontend fue revisada después de separar dominios en nuevos microservicios:
+
+| Dominio | Ruta frontend | Microservicio destino vía BFF |
+|---|---|---|
+| Clientes | `/api/clients/**` | `ms-clientes` |
+| Archivos adjuntos | `/api/attachments/**` | `ms-archivos` |
+| Auditoría / actividad | `/api/activity-logs/**` | `ms-auditoria` |
+| Asignaciones | `/api/assignments/**` | `ms-asignaciones` |
+| Resource skills | `/api/resource-skills/**` | `ms-recursos` |
+
+Cambios aplicados:
+
+- `src/config/backend.ts` ahora centraliza también los puertos/rutas de los servicios extraídos.
+- `src/api/resourcesService.ts` usa la ruta centralizada `/api/resource-skills` y tipos correctos para `Assignment`.
+- `ProjectDetailPage` incorpora una pestaña **Asignaciones**, consumiendo `ms-asignaciones` por Gateway.
+- `MembersTab` ahora permite buscar usuarios por username, correo o nombre completo antes de agregarlos al proyecto.
+- El BFF agrega la ruta `/api/resource-skills/**`, que antes faltaba aunque el frontend tenía el servicio preparado.
+- En backend se evita serializar la relación interna `ProjectMember.project`, lo que podía provocar errores 500 al agregar o listar miembros.

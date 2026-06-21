@@ -51,12 +51,25 @@ export interface Assignment {
   assignmentId: number;
   resourceId: number;
   projectId: number;
-  taskId?: number;
+  projectRole?: string;
   allocationPct?: number;
-  allocationHours?: number;
+  plannedHours?: number;
   startDate?: string;
   endDate?: string;
-  status?: string;
+  assignmentStatus?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface AssignmentRequest {
+  resourceId: number;
+  projectId: number;
+  projectRole?: string;
+  allocationPct?: number;
+  plannedHours?: number;
+  startDate?: string;
+  endDate?: string;
+  assignmentStatus?: string;
 }
 
 export interface Availability {

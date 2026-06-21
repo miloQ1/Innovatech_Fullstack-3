@@ -12,7 +12,7 @@ import cl.innovatech.servicio_proyectos.model.Project;
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, Long> {
 
-    List<Project> findByClientClientId(Long clientId);
+    List<Project> findByClientId(Long clientId);
     @Query("SELECT p FROM Project p JOIN p.members m WHERE m.userId = :userId")
     List<Project> findByMemberUserId(@Param("userId") String userId);
 }

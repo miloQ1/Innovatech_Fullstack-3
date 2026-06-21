@@ -125,7 +125,7 @@ export function PhaseBoard({ phase, tasks, projectId, onTasksChange }: PhaseBoar
           <IonCardContent>
             <form onSubmit={handleAddColumn} className="form-grid">
               <IonItem><IonInput label="Nombre" labelPlacement="stacked" value={colName} required onIonInput={(e) => setColName(String(e.detail.value ?? ''))} /></IonItem>
-              <IonItem><IonInput label="Color" labelPlacement="stacked" type="color" value={colColor} onIonInput={(e) => setColColor(String(e.detail.value ?? '#6366f1'))} /></IonItem>
+              <IonItem><IonInput label="Color" labelPlacement="stacked" type="text" value={colColor} onIonInput={(e) => setColColor(String(e.detail.value ?? '#6366f1'))} /></IonItem>
               <IonItem>
                 <IonSelect label="Estado asociado" labelPlacement="stacked" value={colStatus} onIonChange={(e) => setColStatus(String(e.detail.value ?? ''))}>
                   <IonSelectOption value="">Sin asociación</IonSelectOption>
@@ -158,7 +158,7 @@ export function PhaseBoard({ phase, tasks, projectId, onTasksChange }: PhaseBoar
               {editingColId === col.columnId ? (
                 <form onSubmit={(event) => handleEditColumn(event, col)} className="inline-row">
                   <IonInput fill="outline" value={editName} onIonInput={(e) => setEditName(String(e.detail.value ?? ''))} />
-                  <IonInput fill="outline" type="color" value={editColor} onIonInput={(e) => setEditColor(String(e.detail.value ?? col.color))} />
+                  <IonInput fill="outline" type="text" value={editColor} onIonInput={(e) => setEditColor(String(e.detail.value ?? col.color))} />
                   <IonButton type="submit" size="small">OK</IonButton>
                 </form>
               ) : (

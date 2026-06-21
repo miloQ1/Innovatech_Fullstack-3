@@ -62,9 +62,6 @@ public class Professional {
     private List<Availability> availabilities;
 
     @OneToMany(mappedBy = "professional")
-    private List<Assignment> assignments;
-
-    @OneToMany(mappedBy = "professional")
     private List<Absence> absences;
 
     public Professional() {
@@ -206,14 +203,6 @@ public class Professional {
 
     public void setAvailabilities(List<Availability> availabilities) {
         this.availabilities = availabilities;
-    }
-
-    public List<Assignment> getAssignments() {
-        return assignments;
-    }
-
-    public void setAssignments(List<Assignment> assignments) {
-        this.assignments = assignments;
     }
 
     public List<Absence> getAbsences() {

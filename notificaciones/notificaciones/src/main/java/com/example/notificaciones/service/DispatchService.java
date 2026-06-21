@@ -50,6 +50,8 @@ public class DispatchService {
         existente.setChannel(dispatch.getChannel());
         existente.setDeliveryStatus(dispatch.getDeliveryStatus());
         existente.setRetryCount(dispatch.getRetryCount());
+        existente.setRenderedSubject(dispatch.getRenderedSubject());
+        existente.setRenderedBody(dispatch.getRenderedBody());
         existente.setSentAt(dispatch.getSentAt());
         existente.setErrorMessage(dispatch.getErrorMessage());
         return dispatchRepository.save(existente);

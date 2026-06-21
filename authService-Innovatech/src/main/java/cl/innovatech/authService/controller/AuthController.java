@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import cl.innovatech.authService.DTOs.request.AuthLoginRequestDTO;
 import cl.innovatech.authService.DTOs.request.AuthLogoutRequestDTO;
@@ -75,6 +76,13 @@ public class AuthController {
                 .findFirst()
                 .orElse("Datos inválidos");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", message));
+    }
+
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<Map<String, String>> handleResponseStatusException(ResponseStatusException e) {
+        return ResponseEntity.status(e.getStatusCode())
+                .body(Map.of("message", e.getReason() != null ? e.getReason() : "Error en la solicitud"));
     }
 
     @ExceptionHandler(Exception.class)
