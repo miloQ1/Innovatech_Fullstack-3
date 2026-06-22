@@ -9,7 +9,7 @@ import {
   IonMenu,
   IonMenuToggle,
 } from '@ionic/react';
-import { businessOutline, folderOpenOutline, gridOutline, peopleOutline, statsChartOutline } from 'ionicons/icons';
+import { analyticsOutline, businessOutline, chatbubblesOutline, folderOpenOutline, gridOutline, notificationsOutline, peopleOutline } from 'ionicons/icons';
 import type { Client, Project } from '../../types/projects';
 import { clientService, projectService } from '../../api/projectService';
 import { useAuth } from '../../hooks/useAuth';
@@ -80,9 +80,17 @@ export function Sidebar() {
               <IonIcon icon={peopleOutline} slot="start" />
               <IonLabel>Recursos</IonLabel>
             </IonItem>
+            <IonItem className={`sidebar-link ${isActive('/collaboration') ? 'active-link' : ''}`} button detail={false} routerLink="/collaboration" routerDirection="root">
+              <IonIcon icon={chatbubblesOutline} slot="start" />
+              <IonLabel>Colaboración</IonLabel>
+            </IonItem>
             <IonItem className={`sidebar-link ${isActive('/analytics') ? 'active-link' : ''}`} button detail={false} routerLink="/analytics" routerDirection="root">
-              <IonIcon icon={statsChartOutline} slot="start" />
+              <IonIcon icon={analyticsOutline} slot="start" />
               <IonLabel>Analítica</IonLabel>
+            </IonItem>
+            <IonItem className={`sidebar-link ${isActive('/notifications') ? 'active-link' : ''}`} button detail={false} routerLink="/notifications" routerDirection="root">
+              <IonIcon icon={notificationsOutline} slot="start" />
+              <IonLabel>Notificaciones</IonLabel>
             </IonItem>
           </IonMenuToggle>
 

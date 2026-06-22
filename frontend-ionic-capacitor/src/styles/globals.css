@@ -302,3 +302,7 @@ ion-router-outlet#main-content,
     padding-top: 18px;
   }
 }
+
+.form-grid-span {
+  grid-column: 1 / -1;
+}

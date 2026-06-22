@@ -8,7 +8,7 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/react';
-import { businessOutline, folderOpenOutline, logOutOutline, peopleOutline } from 'ionicons/icons';
+import { analyticsOutline, businessOutline, chatbubblesOutline, folderOpenOutline, logOutOutline, notificationsOutline, peopleOutline } from 'ionicons/icons';
 import { useHistory, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -44,6 +44,18 @@ export function Navbar() {
           <IonButton fill="clear" className={`navbar-link ${isActive('/resources') ? 'active-link' : ''}`} routerLink="/resources" routerDirection="root">
             <IonIcon icon={peopleOutline} slot="start" />
             Recursos
+          </IonButton>
+          <IonButton fill="clear" className={`navbar-link ${isActive('/collaboration') ? 'active-link' : ''}`} routerLink="/collaboration" routerDirection="root">
+            <IonIcon icon={chatbubblesOutline} slot="start" />
+            Colaboración
+          </IonButton>
+          <IonButton fill="clear" className={`navbar-link ${isActive('/analytics') ? 'active-link' : ''}`} routerLink="/analytics" routerDirection="root">
+            <IonIcon icon={analyticsOutline} slot="start" />
+            Analítica
+          </IonButton>
+          <IonButton fill="clear" className={`navbar-link ${isActive('/notifications') ? 'active-link' : ''}`} routerLink="/notifications" routerDirection="root">
+            <IonIcon icon={notificationsOutline} slot="start" />
+            Notificaciones
           </IonButton>
           <IonAvatar className="user-avatar">
             {initials}

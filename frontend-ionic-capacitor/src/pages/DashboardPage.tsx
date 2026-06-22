@@ -130,6 +130,9 @@ export function DashboardPage() {
           <IonButton routerLink="/projects" routerDirection="forward">Ver proyectos</IonButton>
           <IonButton fill="outline" routerLink="/clients" routerDirection="forward">Ver clientes</IonButton>
           <IonButton fill="outline" routerLink="/resources" routerDirection="forward">Gestionar recursos</IonButton>
+          <IonButton fill="outline" routerLink="/collaboration" routerDirection="forward">Colaboración</IonButton>
+          <IonButton fill="outline" routerLink="/analytics" routerDirection="forward">Analítica</IonButton>
+          <IonButton fill="outline" routerLink="/notifications" routerDirection="forward">Notificaciones</IonButton>
           <IonButton fill="outline" routerLink="/clients/create" routerDirection="forward">Crear cliente</IonButton>
         </IonCardContent>
       </IonCard>
