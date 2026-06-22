@@ -2,6 +2,7 @@ package com.example.ms_colaboracion_innovatech.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import org.springframework.stereotype.Service;
 import com.example.ms_colaboracion_innovatech.dto.CommentRequestDTO;
 import com.example.ms_colaboracion_innovatech.dto.CommentResponseDTO;
@@ -15,10 +16,14 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final CollaborationThreadRepository threadRepository;
+    private final NotificationPublisherService notificationPublisherService;
 
-    public CommentService(CommentRepository commentRepository, CollaborationThreadRepository threadRepository) {
+    public CommentService(CommentRepository commentRepository,
+                           CollaborationThreadRepository threadRepository,
+                           NotificationPublisherService notificationPublisherService) {
         this.commentRepository = commentRepository;
         this.threadRepository = threadRepository;
+        this.notificationPublisherService = notificationPublisherService;
     }
 
     public List<CommentResponseDTO> findAll() {
@@ -43,7 +48,13 @@ public class CommentService {
         comment.setCreatedAt(now);
         comment.setUpdatedAt(now);
         comment.setDeletedAt(null);
-        return toResponse(commentRepository.save(comment));
+        Comment saved = commentRepository.save(comment);
+
+        notificationPublisherService.notifyProject(thread.getProjectId(), "COMMENT_CREATED", saved.getAuthorResourceId(), Map.of(
+            "threadTitle", thread.getTitle()
+        ));
+
+        return toResponse(saved);
     }
 
     public CommentResponseDTO update(Long id, CommentRequestDTO requestDTO) {

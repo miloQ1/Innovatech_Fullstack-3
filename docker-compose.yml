@@ -30,6 +30,7 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/auth_db?useSSL=false&serverTimezone=America/Santiago
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      MS_RECURSOS_BASE_URL: http://ms-recursos:8083
     depends_on:
       mysql:
         condition: service_healthy
@@ -44,6 +45,9 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/proyectos_db?useSSL=false&serverTimezone=America/Santiago
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      MS_RECURSOS_BASE_URL: http://ms-recursos:8083
+      MS_ASIGNACIONES_BASE_URL: http://ms-asignaciones:8091
+      NOTIFICACIONES_BASE_URL: http://notificaciones:8085
     depends_on:
       mysql:
         condition: service_healthy
@@ -88,6 +92,7 @@ services:
       SERVER_PORT: 8091
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/asignaciones_db?useSSL=false&serverTimezone=America/Santiago
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      NOTIFICACIONES_BASE_URL: http://notificaciones:8085
     depends_on:
       mysql:
         condition: service_healthy
@@ -102,6 +107,8 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/colaboracion_db?useSSL=false&serverTimezone=America/Santiago
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      MS_ASIGNACIONES_BASE_URL: http://ms-asignaciones:8091
+      NOTIFICACIONES_BASE_URL: http://notificaciones:8085
     depends_on:
       mysql:
         condition: service_healthy

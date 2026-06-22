@@ -1,8 +1,15 @@
 package cl.innovatech.servicio_proyectos.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import cl.innovatech.servicio_proyectos.model.Project;
 import cl.innovatech.servicio_proyectos.model.ProjectMember;
@@ -16,11 +23,20 @@ public class ProjectService {
 
     private final ProjectMemberRepository projectMemberRepository;
     private final ProjectRepository projectRepository;
+    private final RestTemplate restTemplate;
+
+    @Value("${ms-recursos.base-url:http://localhost:8083}")
+    private String recursosBaseUrl;
+
+    @Value("${ms-asignaciones.base-url:http://localhost:8091}")
+    private String asignacionesBaseUrl;
 
     public ProjectService(ProjectRepository projectRepository,
-                      ProjectMemberRepository projectMemberRepository) {
+                      ProjectMemberRepository projectMemberRepository,
+                      RestTemplate restTemplate) {
     this.projectRepository = projectRepository;
     this.projectMemberRepository = projectMemberRepository;
+    this.restTemplate = restTemplate;
 }
 
     public Project createProject(Long clientId, Project project, String userName) {
@@ -39,7 +55,52 @@ public class ProjectService {
             projectMemberRepository.save(member);
         }
 
+        autoAssignCreator(userId, saved);
+
         return saved;
+    }
+
+    // Vincula al creador del proyecto como recurso asignado, resolviendo su ficha
+    // profesional (employeeCode == userId) y creando la asignación en ms-asignaciones.
+    private void autoAssignCreator(String userId, Project project) {
+        if (userId == null) {
+            return;
+        }
+        try {
+            HttpHeaders meHeaders = new HttpHeaders();
+            meHeaders.set("X-User-Id", userId);
+            Map<?, ?> professional = restTemplate.exchange(
+                recursosBaseUrl + "/api/professionals/me",
+                HttpMethod.GET,
+                new HttpEntity<>(meHeaders),
+                Map.class
+            ).getBody();
+
+            if (professional == null || professional.get("resourceId") == null) {
+                return;
+            }
+
+            Map<String, Object> assignment = new HashMap<>();
+            assignment.put("resourceId", ((Number) professional.get("resourceId")).longValue());
+            assignment.put("projectId", project.getProjectId());
+            assignment.put("projectRole", "Owner");
+            assignment.put("allocationPct", 100);
+            assignment.put("assignmentStatus", "ACTIVE");
+            if (project.getStartDate() != null) {
+                assignment.put("startDate", project.getStartDate().toString());
+            }
+
+            HttpHeaders writeHeaders = new HttpHeaders();
+            writeHeaders.set("X-User-Role", "ADMIN");
+            restTemplate.exchange(
+                asignacionesBaseUrl + "/api/assignments",
+                HttpMethod.POST,
+                new HttpEntity<>(assignment, writeHeaders),
+                Object.class
+            );
+        } catch (Exception e) {
+            System.out.println("Warning: no se pudo auto-asignar al creador del proyecto: " + e.getMessage());
+        }
     }
 
     public List<Project> getAllProjects() {

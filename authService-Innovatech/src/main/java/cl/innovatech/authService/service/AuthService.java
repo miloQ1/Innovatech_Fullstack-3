@@ -8,6 +8,8 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -43,6 +45,9 @@ public class AuthService {
 
     @Value("${jwt.refresh-token-expiration-days}")
     private Long refreshTokenExpirationDays;
+
+    @Value("${ms-recursos.base-url:http://localhost:8083}")
+    private String recursosBaseUrl;
 
     public AuthService(UserRepository userRepository,
                    RefreshTokenRepository refreshTokenRepository,
@@ -89,9 +94,12 @@ public class AuthService {
         professional.put("status",    "ACTIVE");
         professional.put("weeklyCapacityHours", 40);
         
-        restTemplate.postForObject(
-            "http://ms-recursos:8083/api/professionals",
-            professional,
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-User-Role", "ADMIN");
+        restTemplate.exchange(
+            recursosBaseUrl + "/api/professionals",
+            org.springframework.http.HttpMethod.POST,
+            new HttpEntity<>(professional, headers),
             Object.class
         );
     } catch (Exception e) {

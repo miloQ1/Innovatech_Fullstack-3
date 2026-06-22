@@ -326,10 +326,9 @@ export function NotificationsPage() {
                     <IonLabel>
                       <h2>{item.subject || `Evento #${item.eventId}`}</h2>
                       <p>{item.body || 'Sin contenido renderizado.'}</p>
-                      <p className="muted">{channelLabel(item.channel)} · {formatDate(item.sentAt)}</p>
+                      <p className="muted">{formatDate(item.sentAt)}</p>
                       {item.errorMessage && <p className="muted">Error: {item.errorMessage}</p>}
                     </IonLabel>
-                    <IonBadge color={statusColor(item.deliveryStatus)} slot="end">{formatStatus(item.deliveryStatus)}</IonBadge>
                   </IonItem>
                 ))}
               </IonList>

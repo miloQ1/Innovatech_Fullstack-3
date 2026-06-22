@@ -236,24 +236,32 @@ export function ResourcesPage() {
                       </span>
                     )}
                   </div>
-                  {isAdmin && (
-                    <div className="card-actions">
-                      {resource.source === 'professional' ? (
-                        <>
-                          <IonButton type="button" size="small" fill="solid" color="primary" onClick={() => { setSelectedPro(resource); setInitialProfessionalData(null); setShowModal(true); }}>
-                            Editar
-                          </IonButton>
-                          <IonButton type="button" size="small" fill="outline" color="danger" onClick={() => setProToDelete(resource)}>
-                            Eliminar
-                          </IonButton>
-                        </>
-                      ) : (
-                        <IonButton type="button" size="small" fill="solid" color="primary" onClick={() => openProfessionalModalFromUser(resource)}>
-                          Crear ficha profesional
-                        </IonButton>
-                      )}
-                    </div>
-                  )}
+                  {(() => {
+                    const isOwner = resource.source === 'professional' && resource.employeeCode === user?.id;
+                    if (!isAdmin && !isOwner) return null;
+                    return (
+                      <div className="card-actions">
+                        {resource.source === 'professional' ? (
+                          <>
+                            <IonButton type="button" size="small" fill="solid" color="primary" onClick={() => { setSelectedPro(resource); setInitialProfessionalData(null); setShowModal(true); }}>
+                              Editar
+                            </IonButton>
+                            {isAdmin && (
+                              <IonButton type="button" size="small" fill="outline" color="danger" onClick={() => setProToDelete(resource)}>
+                                Eliminar
+                              </IonButton>
+                            )}
+                          </>
+                        ) : (
+                          isAdmin && (
+                            <IonButton type="button" size="small" fill="solid" color="primary" onClick={() => openProfessionalModalFromUser(resource)}>
+                              Crear ficha profesional
+                            </IonButton>
+                          )
+                        )}
+                      </div>
+                    );
+                  })()}
                 </IonCardContent>
               </IonCard>
             );

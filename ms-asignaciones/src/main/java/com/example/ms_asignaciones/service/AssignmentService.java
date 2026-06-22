@@ -6,15 +6,19 @@ import com.example.ms_asignaciones.model.Assignment;
 import com.example.ms_asignaciones.repository.AssignmentRepository;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AssignmentService {
 
     private final AssignmentRepository assignmentRepository;
+    private final NotificationPublisherService notificationPublisherService;
 
-    public AssignmentService(AssignmentRepository assignmentRepository) {
+    public AssignmentService(AssignmentRepository assignmentRepository,
+                              NotificationPublisherService notificationPublisherService) {
         this.assignmentRepository = assignmentRepository;
+        this.notificationPublisherService = notificationPublisherService;
     }
 
     public List<AssignmentResponseDTO> findAll() {
@@ -43,6 +47,11 @@ public class AssignmentService {
         assignment.setCreatedAt(now);
         assignment.setUpdatedAt(now);
         Assignment saved = assignmentRepository.save(assignment);
+
+        notificationPublisherService.notifyResource(saved.getResourceId(), saved.getProjectId(), "ASSIGNMENT_CREATED", Map.of(
+            "projectRole", saved.getProjectRole() != null ? saved.getProjectRole() : ""
+        ));
+
         return toResponseDTO(saved);
     }
 
@@ -65,10 +74,16 @@ public class AssignmentService {
     }
 
     public boolean delete(Long id) {
-        if (!assignmentRepository.existsById(id)) {
+        Assignment existing = assignmentRepository.findById(id).orElse(null);
+        if (existing == null) {
             return false;
         }
         assignmentRepository.deleteById(id);
+
+        notificationPublisherService.notifyResource(existing.getResourceId(), existing.getProjectId(), "ASSIGNMENT_DELETED", Map.of(
+            "projectRole", existing.getProjectRole() != null ? existing.getProjectRole() : ""
+        ));
+
         return true;
     }
 

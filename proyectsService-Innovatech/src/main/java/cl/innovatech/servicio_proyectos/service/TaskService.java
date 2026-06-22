@@ -1,6 +1,7 @@
 package cl.innovatech.servicio_proyectos.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
@@ -22,15 +23,18 @@ public class TaskService {
     private final ProjectRepository projectRepository;
     private final PhaseRepository phaseRepository;
     private final TaskStatusMessageFactory taskStatusMessageFactory;
+    private final NotificationPublisherService notificationPublisherService;
 
     public TaskService(TaskRepository taskRepository,
                        ProjectRepository projectRepository,
                        PhaseRepository phaseRepository,
-                       TaskStatusMessageFactory taskStatusMessageFactory) {
+                       TaskStatusMessageFactory taskStatusMessageFactory,
+                       NotificationPublisherService notificationPublisherService) {
         this.taskRepository = taskRepository;
         this.projectRepository = projectRepository;
         this.phaseRepository = phaseRepository;
         this.taskStatusMessageFactory = taskStatusMessageFactory;
+        this.notificationPublisherService = notificationPublisherService;
     }
 
     public Task createTask(Long projectId, Task task) {
@@ -55,7 +59,14 @@ public class TaskService {
             .createMessage(task.getStatus().name(), task.getTitle());
         System.out.println("=== [TaskFactory] Tarea creada: " + message);
 
-        return taskRepository.save(task);
+        Task saved = taskRepository.save(task);
+
+        notificationPublisherService.notifyProject(projectId, "TASK_CREATED", Map.of(
+            "taskName", saved.getTitle(),
+            "projectName", project.getName()
+        ));
+
+        return saved;
     }
 
     public List<Task> getTasksByProject(Long projectId) {
@@ -74,7 +85,8 @@ public class TaskService {
     public Task updateTask(Long id, Task task) {
         Task existente = getTaskById(id);
 
-        if (task.getStatus() != null && !existente.getStatus().equals(task.getStatus())) {
+        boolean statusChanged = task.getStatus() != null && !existente.getStatus().equals(task.getStatus());
+        if (statusChanged) {
             TaskStatusMessage message = taskStatusMessageFactory
                 .createMessage(task.getStatus().name(), existente.getTitle());
             System.out.println("=== [TaskFactory] Status cambiado: " + message);
@@ -92,7 +104,20 @@ public class TaskService {
         existente.setDueDate(task.getDueDate());
         existente.setUpdatedBy(UserContext.getCurrentUserId());
 
-        return taskRepository.save(existente);
+        Task saved = taskRepository.save(existente);
+
+        if (statusChanged) {
+            Long projectId = saved.getProject() != null ? saved.getProject().getProjectId() : null;
+            if (projectId != null) {
+                notificationPublisherService.notifyProject(projectId, "TASK_STATUS_CHANGED", Map.of(
+                    "taskName", saved.getTitle(),
+                    "projectName", saved.getProject().getName(),
+                    "newStatus", saved.getStatus().name()
+                ));
+            }
+        }
+
+        return saved;
     }
 
     public void deleteTask(Long id) {

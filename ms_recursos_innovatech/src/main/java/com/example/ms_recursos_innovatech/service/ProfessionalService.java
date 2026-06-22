@@ -37,6 +37,7 @@ public class ProfessionalService {
 
     public ProfessionalResponseDTO save(ProfessionalRequestDTO requestDTO) {
         Professional professional = new Professional();
+        professional.setEmployeeCode(requestDTO.getEmployeeCode());
         applyRequest(professional, requestDTO);
         LocalDateTime now = LocalDateTime.now();
         professional.setCreatedAt(now);
@@ -83,7 +84,6 @@ public class ProfessionalService {
     }
 
     private void applyRequest(Professional professional, ProfessionalRequestDTO requestDTO) {
-        professional.setEmployeeCode(requestDTO.getEmployeeCode());
         professional.setFirstName(requestDTO.getFirstName());
         professional.setLastName(requestDTO.getLastName());
         professional.setEmail(requestDTO.getEmail());

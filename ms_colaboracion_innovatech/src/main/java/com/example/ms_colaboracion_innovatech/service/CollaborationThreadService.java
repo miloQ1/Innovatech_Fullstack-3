@@ -2,6 +2,7 @@ package com.example.ms_colaboracion_innovatech.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import org.springframework.stereotype.Service;
 import com.example.ms_colaboracion_innovatech.dto.CollaborationThreadRequestDTO;
 import com.example.ms_colaboracion_innovatech.dto.CollaborationThreadResponseDTO;
@@ -12,9 +13,12 @@ import com.example.ms_colaboracion_innovatech.repository.CollaborationThreadRepo
 public class CollaborationThreadService {
 
     private final CollaborationThreadRepository threadRepository;
+    private final NotificationPublisherService notificationPublisherService;
 
-    public CollaborationThreadService(CollaborationThreadRepository threadRepository) {
+    public CollaborationThreadService(CollaborationThreadRepository threadRepository,
+                                       NotificationPublisherService notificationPublisherService) {
         this.threadRepository = threadRepository;
+        this.notificationPublisherService = notificationPublisherService;
     }
 
     public List<CollaborationThreadResponseDTO> findAll() {
@@ -35,7 +39,13 @@ public class CollaborationThreadService {
         LocalDateTime now = LocalDateTime.now();
         thread.setCreatedAt(now);
         thread.setUpdatedAt(now);
-        return toResponse(threadRepository.save(thread));
+        CollaborationThread saved = threadRepository.save(thread);
+
+        notificationPublisherService.notifyProject(saved.getProjectId(), "THREAD_CREATED", saved.getCreatedByResourceId(), Map.of(
+            "threadTitle", saved.getTitle()
+        ));
+
+        return toResponse(saved);
     }
 
     public CollaborationThreadResponseDTO update(Long id, CollaborationThreadRequestDTO requestDTO) {

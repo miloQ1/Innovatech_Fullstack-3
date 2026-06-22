@@ -27,6 +27,20 @@ body { background: var(--ion-background-color); }
 .scroll-x { overflow-x: auto; padding-bottom: 8px; }
 
 .app-card { border: 1px solid var(--app-border); border-radius: 18px; box-shadow: var(--app-shadow); }
+
+.comment-feed { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.comment-composer-actions { display: flex; align-items: center; gap: 8px; }
+.comment-bubble { background: #f1f5f9; border-radius: 14px; padding: 10px 14px; }
+.comment-bubble p { margin: 0; white-space: pre-wrap; }
+.comment-meta { display: flex; align-items: center; gap: 8px; margin-top: 4px; padding-left: 4px; }
+.comment-attachment { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 0.85em; }
+
+.thread-row { padding: 14px 0; }
+.thread-title { font-weight: 700; font-size: 1.05em; margin: 0 0 4px; color: #0f172a; cursor: pointer; }
+.thread-title:hover { color: var(--ion-color-primary); }
+.thread-description { margin: 0 0 4px; color: #334155; }
+.thread-row-actions { display: flex; align-items: center; gap: 4px; margin-top: 8px; }
+.thread-row-actions ion-button { --padding-start: 8px; --padding-end: 8px; margin: 0; }
 .clickable { cursor: pointer; transition: transform 160ms ease, box-shadow 160ms ease; }
 .clickable:hover { transform: translateY(-2px); box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12); }
 .muted { color: var(--app-muted); }

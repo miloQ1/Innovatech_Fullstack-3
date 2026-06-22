@@ -97,7 +97,16 @@ export function ProfessionalModal({ professional, initialData, onClose, onSave }
             <IonItem><IonInput label="Nombre" labelPlacement="stacked" value={form.firstName} required onIonInput={(e) => setField('firstName', String(e.detail.value ?? ''))} /></IonItem>
             <IonItem><IonInput label="Apellido" labelPlacement="stacked" value={form.lastName} required onIonInput={(e) => setField('lastName', String(e.detail.value ?? ''))} /></IonItem>
             <IonItem><IonInput label="Email" labelPlacement="stacked" type="email" value={form.email} required onIonInput={(e) => setField('email', String(e.detail.value ?? ''))} /></IonItem>
-            <IonItem><IonInput label="Código empleado" labelPlacement="stacked" value={form.employeeCode} onIonInput={(e) => setField('employeeCode', String(e.detail.value ?? ''))} /></IonItem>
+            <IonItem>
+              <IonInput
+                label="Código empleado"
+                labelPlacement="stacked"
+                value={form.employeeCode}
+                readonly={!!professional}
+                helperText={professional ? 'No se puede modificar: vincula la ficha con la cuenta de usuario.' : undefined}
+                onIonInput={(e) => setField('employeeCode', String(e.detail.value ?? ''))}
+              />
+            </IonItem>
             <IonItem><IonInput label="Rol" labelPlacement="stacked" value={form.roleName} onIonInput={(e) => setField('roleName', String(e.detail.value ?? ''))} /></IonItem>
             <IonItem>
               <IonSelect label="Seniority" labelPlacement="stacked" value={form.seniority} onIonChange={(e) => setField('seniority', String(e.detail.value))}>
