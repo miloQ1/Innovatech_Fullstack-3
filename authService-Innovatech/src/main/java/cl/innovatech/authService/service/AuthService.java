@@ -6,10 +6,10 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -30,7 +30,6 @@ import cl.innovatech.authService.repository.AuthAuditLogRepository;
 import cl.innovatech.authService.repository.RefreshTokenRepository;
 import cl.innovatech.authService.repository.UserRepository;
 
-
 @Service
 @Transactional
 public class AuthService {
@@ -42,26 +41,28 @@ public class AuthService {
     private final JwtService jwtService;
     private final RestTemplate restTemplate;
 
-
     @Value("${jwt.refresh-token-expiration-days}")
     private Long refreshTokenExpirationDays;
 
     @Value("${ms-recursos.base-url:http://localhost:8083}")
     private String recursosBaseUrl;
 
+    @Value("${notificaciones.base-url:http://localhost:8085}")
+    private String notificacionesBaseUrl;
+
     public AuthService(UserRepository userRepository,
-                   RefreshTokenRepository refreshTokenRepository,
-                   AuthAuditLogRepository authAuditLogRepository,
-                   PasswordEncoder passwordEncoder,
-                   JwtService jwtService,
-                   RestTemplate restTemplate) {
-    this.userRepository = userRepository;
-    this.refreshTokenRepository = refreshTokenRepository;
-    this.authAuditLogRepository = authAuditLogRepository;
-    this.passwordEncoder = passwordEncoder;
-    this.jwtService = jwtService;
-    this.restTemplate = restTemplate;  
-}
+                       RefreshTokenRepository refreshTokenRepository,
+                       AuthAuditLogRepository authAuditLogRepository,
+                       PasswordEncoder passwordEncoder,
+                       JwtService jwtService,
+                       RestTemplate restTemplate) {
+        this.userRepository = userRepository;
+        this.refreshTokenRepository = refreshTokenRepository;
+        this.authAuditLogRepository = authAuditLogRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
+        this.restTemplate = restTemplate;
+    }
 
     public AuthResponseDTO register(AuthRegisterRequestDTO dto) {
         String userName = dto.getUserName().trim();
@@ -82,30 +83,12 @@ public class AuthService {
         user.setEmail(email);
         user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
         user.setStatus("ACTIVE");
+        user.setRole("MEMBER");
         user.setEnabled(true);
 
         User savedUser = userRepository.save(user);
-        try {
-        Map<String, Object> professional = new HashMap<>();
-        professional.put("firstName", savedUser.getFirstName());
-        professional.put("lastName",  savedUser.getLastName());
-        professional.put("email",     savedUser.getEmail());
-        professional.put("employeeCode", savedUser.getId());
-        professional.put("status",    "ACTIVE");
-        professional.put("weeklyCapacityHours", 40);
-        
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("X-User-Role", "ADMIN");
-        restTemplate.exchange(
-            recursosBaseUrl + "/api/professionals",
-            org.springframework.http.HttpMethod.POST,
-            new HttpEntity<>(professional, headers),
-            Object.class
-        );
-    } catch (Exception e) {
-        // Si falla no interrumpir el registro
-        System.out.println("Warning: no se pudo crear perfil en recursos: " + e.getMessage());
-    }
+        Long resourceId = createProfessionalProfile(savedUser);
+        sendWelcomeNotification(savedUser, resourceId);
 
         String accessToken = jwtService.generateAccessToken(savedUser);
         RefreshToken refreshToken = createRefreshToken(savedUser.getId());
@@ -199,6 +182,79 @@ public class AuthService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
 
         return mapToUserResponseDTO(user);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Long createProfessionalProfile(User savedUser) {
+        try {
+            Map<String, Object> professional = new HashMap<>();
+            professional.put("firstName", savedUser.getFirstName());
+            professional.put("lastName", savedUser.getLastName());
+            professional.put("email", savedUser.getEmail());
+            professional.put("employeeCode", savedUser.getId());
+            professional.put("roleName", "Usuario registrado");
+            professional.put("seniority", "MID");
+            professional.put("location", "Santiago");
+            professional.put("timeZone", "America/Santiago");
+            professional.put("status", "ACTIVE");
+            professional.put("weeklyCapacityHours", 40);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("X-User-Role", "ADMIN");
+            Map<String, Object> response = restTemplate.exchange(
+                    recursosBaseUrl + "/api/professionals",
+                    HttpMethod.POST,
+                    new HttpEntity<>(professional, headers),
+                    Map.class
+            ).getBody();
+
+            return extractResourceId(response);
+        } catch (Exception e) {
+            // Si falla no interrumpe el registro: el usuario puede crear/actualizar su ficha después.
+            System.out.println("Warning: no se pudo crear perfil en recursos: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private void sendWelcomeNotification(User user, Long resourceId) {
+        if (resourceId == null) {
+            return;
+        }
+        try {
+            Map<String, Object> request = new HashMap<>();
+            request.put("sourceService", "auth-service");
+            request.put("eventType", "WELCOME");
+            request.put("entityId", resourceId);
+            request.put("recipientResourceIds", java.util.List.of(resourceId));
+            request.put("channels", java.util.List.of("IN_APP"));
+            request.put("payload", Map.of(
+                    "firstName", user.getFirstName(),
+                    "userName", user.getUserName(),
+                    "message", "Tu cuenta fue creada correctamente y tu bandeja de notificaciones está activa."
+            ));
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("X-User-Role", "ADMIN");
+            headers.set("X-Internal-Service", "auth-service");
+            restTemplate.exchange(
+                    notificacionesBaseUrl + "/api/notifications/send",
+                    HttpMethod.POST,
+                    new HttpEntity<>(request, headers),
+                    Object.class
+            );
+        } catch (Exception e) {
+            System.out.println("Warning: no se pudo crear notificación de bienvenida: " + e.getMessage());
+        }
+    }
+
+    private Long extractResourceId(Map<String, Object> response) {
+        if (response == null) return null;
+        Object value = response.get("resourceId");
+        if (value == null) value = response.get("professionalId");
+        if (value == null) value = response.get("id");
+        if (value instanceof Number number) return number.longValue();
+        if (value != null) return Long.valueOf(String.valueOf(value));
+        return null;
     }
 
     private User findUserByIdentifier(String identifier) {

@@ -5,7 +5,8 @@ const config: CapacitorConfig = {
   appName: 'Innovatech',
   webDir: 'dist',
   server: {
-    androidScheme: 'https'
+    androidScheme: 'http',
+    cleartext: true
   }
 };
 

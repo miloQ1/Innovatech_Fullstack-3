@@ -43,6 +43,18 @@ public class JwtService {
         return extractAllClaims(token).get("role", String.class);
     }
 
+    public String extractEmail(String token) {
+        return extractAllClaims(token).get("email", String.class);
+    }
+
+    public String extractFirstName(String token) {
+        return extractAllClaims(token).get("firstName", String.class);
+    }
+
+    public String extractLastName(String token) {
+        return extractAllClaims(token).get("lastName", String.class);
+    }
+
     public boolean isTokenValid(String token) {
         try {
             extractAllClaims(token);

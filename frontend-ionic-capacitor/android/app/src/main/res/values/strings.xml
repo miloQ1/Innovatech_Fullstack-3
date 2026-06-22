@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Innovatech</string>
+    <string name="title_activity_main">Innovatech</string>
+    <string name="package_name">cl.innovatech.frontend</string>
+    <string name="custom_url_scheme">cl.innovatech.frontend</string>
+</resources>

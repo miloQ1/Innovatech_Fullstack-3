@@ -30,6 +30,9 @@ export const professionalService = {
   create(data: ProfessionalRequest): Promise<Professional> {
     return apiClient.post<Professional>(BACKEND_ROUTES.professionals, data, true);
   },
+  createMe(data: Partial<ProfessionalRequest>): Promise<Professional> {
+    return apiClient.post<Professional>(`${BACKEND_ROUTES.professionals}/me`, data, true);
+  },
   update(id: number, data: Partial<ProfessionalRequest>): Promise<Professional> {
     return apiClient.put<Professional>(`${BACKEND_ROUTES.professionals}/${id}`, data, true);
   },

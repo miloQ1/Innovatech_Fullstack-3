@@ -105,6 +105,45 @@ public class NotificationDispatchService {
         return response;
     }
 
+    @Transactional
+    public void ensureWelcomeNotification(Long recipientResourceId, String firstName, String userName) {
+        if (recipientResourceId == null) {
+            return;
+        }
+        if (dispatchRepository.existsByRecipientResourceIdAndNotificationEventEventType(recipientResourceId, "WELCOME")) {
+            return;
+        }
+
+        NotificationRequestDTO request = new NotificationRequestDTO();
+        request.setSourceService("notificaciones");
+        request.setEventType("WELCOME");
+        request.setEntityId(recipientResourceId);
+        request.setRecipientResourceIds(List.of(recipientResourceId));
+        request.setChannels(List.of(NotificationChannel.IN_APP));
+        request.setPayload(Map.of(
+                "firstName", firstName == null || firstName.isBlank() ? "usuario" : firstName,
+                "userName", userName == null ? "" : userName,
+                "message", "Tu bandeja de notificaciones está activa. Aquí recibirás avisos de asignaciones, proyectos, tareas y colaboración."
+        ));
+        send(request);
+    }
+
+    @Transactional
+    public NotificationResponseDTO sendTestToRecipient(Long recipientResourceId, String firstName, String userName) {
+        NotificationRequestDTO request = new NotificationRequestDTO();
+        request.setSourceService("frontend-ionic-capacitor");
+        request.setEventType("TEST_NOTIFICATION");
+        request.setEntityId(recipientResourceId);
+        request.setRecipientResourceIds(List.of(recipientResourceId));
+        request.setChannels(List.of(NotificationChannel.IN_APP));
+        request.setPayload(Map.of(
+                "firstName", firstName == null || firstName.isBlank() ? "usuario" : firstName,
+                "userName", userName == null ? "" : userName,
+                "message", "Esta es una notificación de prueba para validar tu bandeja personal."
+        ));
+        return send(request);
+    }
+
     @Transactional(readOnly = true)
     public List<DispatchResultDTO> findInboxByRecipient(Long recipientResourceId) {
         return dispatchRepository.findByRecipientResourceIdOrderBySentAtDesc(recipientResourceId)
@@ -157,8 +196,20 @@ public class NotificationDispatchService {
         template.setChannel(channel);
         template.setLanguage("es");
         template.setIsActive(true);
+
+        if ("WELCOME".equalsIgnoreCase(eventType)) {
+            template.setSubjectTemplate("Bienvenido/a a Innovatech");
+            template.setBodyTemplate("Hola {{firstName}}, tu cuenta está lista. {{message}}");
+            return template;
+        }
+        if ("TEST_NOTIFICATION".equalsIgnoreCase(eventType)) {
+            template.setSubjectTemplate("Notificación de prueba");
+            template.setBodyTemplate("Hola {{firstName}}, {{message}}");
+            return template;
+        }
+
         template.setSubjectTemplate("Innovatech - {{eventType}}");
-        template.setBodyTemplate("Se generó el evento {{eventType}} desde {{sourceService}} para la entidad {{entityId}}.");
+        template.setBodyTemplate("Se generó el evento {{eventType}} desde {{sourceService}} para la entidad {{entityId}}. {{message}}");
         return template;
     }
 

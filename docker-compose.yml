@@ -31,6 +31,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/auth_db?useSSL=false&serverTimezone=America/Santiago
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
       MS_RECURSOS_BASE_URL: http://ms-recursos:8083
+      NOTIFICACIONES_BASE_URL: http://notificaciones:8085
     depends_on:
       mysql:
         condition: service_healthy
@@ -169,6 +170,7 @@ services:
       SERVER_PORT: 8085
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/notificaciones_db?useSSL=false&serverTimezone=America/Santiago
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      RESOURCES_SERVICE_URL: http://ms-recursos:8083
     depends_on:
       mysql:
         condition: service_healthy

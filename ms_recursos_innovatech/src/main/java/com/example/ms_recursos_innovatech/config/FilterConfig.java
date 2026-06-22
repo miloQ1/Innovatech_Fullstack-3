@@ -12,7 +12,7 @@ public class FilterConfig {
     @Bean
     public FilterRegistrationBean<AdminWriteFilter> adminWriteFilterRegistration(ProfessionalRepository professionalRepository) {
         FilterRegistrationBean<AdminWriteFilter> registration = new FilterRegistrationBean<>(new AdminWriteFilter(professionalRepository));
-        registration.addUrlPatterns("/api/professionals/*");
+        registration.addUrlPatterns("/api/professionals", "/api/professionals/*");
         return registration;
     }
 }

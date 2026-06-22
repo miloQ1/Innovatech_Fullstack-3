@@ -8,7 +8,15 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/react';
-import { analyticsOutline, businessOutline, chatbubblesOutline, folderOpenOutline, logOutOutline, notificationsOutline, peopleOutline } from 'ionicons/icons';
+import {
+  analyticsOutline,
+  businessOutline,
+  chatbubblesOutline,
+  folderOpenOutline,
+  logOutOutline,
+  notificationsOutline,
+  peopleOutline,
+} from 'ionicons/icons';
 import { useHistory, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -16,7 +24,10 @@ export function Navbar() {
   const { user, logout } = useAuth();
   const history = useHistory();
   const location = useLocation();
-  const initials = user ? `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase() || 'U' : 'U';
+
+  const initials = user
+    ? `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase() || 'U'
+    : 'U';
 
   const isActive = (path: string) => location.pathname.startsWith(path);
 
@@ -27,40 +38,49 @@ export function Navbar() {
 
   return (
     <IonHeader translucent>
-      <IonToolbar>
-        <IonButtons slot="start">
+      <IonToolbar className="app-navbar-toolbar">
+        <IonButtons slot="start" className="navbar-start">
           <IonMenuButton />
         </IonButtons>
-        <IonTitle>Innovatech</IonTitle>
-        <IonButtons slot="end">
+
+        <IonTitle className="navbar-title">Innovatech</IonTitle>
+
+        <IonButtons slot="end" className="navbar-actions-scroll">
           <IonButton fill="clear" className={`navbar-link ${isActive('/projects') ? 'active-link' : ''}`} routerLink="/projects" routerDirection="root">
             <IonIcon icon={folderOpenOutline} slot="start" />
             Proyectos
           </IonButton>
+
           <IonButton fill="clear" className={`navbar-link ${isActive('/clients') ? 'active-link' : ''}`} routerLink="/clients" routerDirection="root">
             <IonIcon icon={businessOutline} slot="start" />
             Clientes
           </IonButton>
+
           <IonButton fill="clear" className={`navbar-link ${isActive('/resources') ? 'active-link' : ''}`} routerLink="/resources" routerDirection="root">
             <IonIcon icon={peopleOutline} slot="start" />
             Recursos
           </IonButton>
+
           <IonButton fill="clear" className={`navbar-link ${isActive('/collaboration') ? 'active-link' : ''}`} routerLink="/collaboration" routerDirection="root">
             <IonIcon icon={chatbubblesOutline} slot="start" />
             Colaboración
           </IonButton>
+
           <IonButton fill="clear" className={`navbar-link ${isActive('/analytics') ? 'active-link' : ''}`} routerLink="/analytics" routerDirection="root">
             <IonIcon icon={analyticsOutline} slot="start" />
             Analítica
           </IonButton>
+
           <IonButton fill="clear" className={`navbar-link ${isActive('/notifications') ? 'active-link' : ''}`} routerLink="/notifications" routerDirection="root">
             <IonIcon icon={notificationsOutline} slot="start" />
             Notificaciones
           </IonButton>
+
           <IonAvatar className="user-avatar">
             {initials}
           </IonAvatar>
-          <IonButton type="button" fill="clear" color="medium" onClick={handleLogout}>
+
+          <IonButton type="button" fill="clear" color="medium" className="navbar-logout-button" onClick={handleLogout}>
             <IonIcon icon={logOutOutline} slot="start" />
             Salir
           </IonButton>

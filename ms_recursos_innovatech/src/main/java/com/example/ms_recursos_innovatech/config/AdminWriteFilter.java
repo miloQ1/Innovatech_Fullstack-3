@@ -41,8 +41,10 @@ public class AdminWriteFilter implements Filter {
             boolean isAdmin = "ADMIN".equalsIgnoreCase(role);
 
             if (!isAdmin) {
-                boolean isOwnerEditingOwnProfile = EDIT_METHODS.contains(method) && isOwner(request);
-                if (!isOwnerEditingOwnProfile) {
+                boolean isMeEndpoint = request.getRequestURI().endsWith("/api/professionals/me") || request.getRequestURI().endsWith("/professionals/me");
+                boolean isOwnerManagingOwnProfile = (isMeEndpoint && (EDIT_METHODS.contains(method) || "POST".equals(method)))
+                        || (EDIT_METHODS.contains(method) && isOwner(request));
+                if (!isOwnerManagingOwnProfile) {
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                     response.setContentType("application/json");
                     response.getWriter().write("{\"message\":\"Se requiere rol ADMIN para modificar profesionales\"}");

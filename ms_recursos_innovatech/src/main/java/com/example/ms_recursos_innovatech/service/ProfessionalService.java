@@ -57,6 +57,17 @@ public class ProfessionalService {
         return toResponseDTO(saved);
     }
 
+    public ProfessionalResponseDTO updateByEmployeeCode(String employeeCode, ProfessionalRequestDTO requestDTO) {
+        Professional existing = professionalRepository.findByEmployeeCode(employeeCode).orElse(null);
+        if (existing == null) {
+            return null;
+        }
+        applyRequest(existing, requestDTO);
+        existing.setUpdatedAt(LocalDateTime.now());
+        Professional saved = professionalRepository.save(existing);
+        return toResponseDTO(saved);
+    }
+
     public boolean delete(Long id) {
         if (!professionalRepository.existsById(id)) {
             return false;

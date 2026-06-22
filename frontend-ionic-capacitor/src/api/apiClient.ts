@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config/backend';
+import { API_BASE_URL, API_FALLBACK_BASE_URLS } from '../config/backend';
 
 export type ApiErrorBody = {
   message?: string;
@@ -19,9 +19,12 @@ export class ApiClientError extends Error {
   }
 }
 
-function buildUrl(path: string) {
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  return `${API_BASE_URL}${normalizedPath}`;
+function normalizePath(path: string) {
+  return path.startsWith('/') ? path : `/${path}`;
+}
+
+function buildUrl(path: string, baseUrl = API_BASE_URL) {
+  return `${baseUrl}${normalizePath(path)}`;
 }
 
 function clearSession() {
@@ -51,12 +54,48 @@ async function readError(res: Response): Promise<{ message: string; body?: ApiEr
   }
 }
 
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 8000): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
+async function fetchWithFallbacks(path: string, options: RequestInit): Promise<Response> {
+  const bases = API_FALLBACK_BASE_URLS.length > 0 ? API_FALLBACK_BASE_URLS : [API_BASE_URL];
+  let lastError: unknown;
+
+  for (const baseUrl of bases) {
+    try {
+      return await fetchWithTimeout(buildUrl(path, baseUrl), options);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  if (lastError instanceof DOMException && lastError.name === 'AbortError') {
+    throw new ApiClientError(
+      'No se pudo conectar con el backend dentro del tiempo esperado. Revisa que Docker/Gateway esté levantado y que Android use la URL correcta.',
+      0,
+    );
+  }
+
+  throw new ApiClientError(
+    'Error de conexión con el backend. Revisa CORS, red, Docker, Gateway o la URL configurada para web/Android.',
+    0,
+  );
+}
+
 async function tryRefreshToken(): Promise<boolean> {
   const refreshToken = localStorage.getItem('refreshToken');
   if (!refreshToken) return false;
 
   try {
-    const res = await fetch(buildUrl('/api/auth/refresh-token'), {
+    const res = await fetchWithFallbacks('/api/auth/refresh-token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken }),
@@ -97,7 +136,7 @@ async function request<T>(
   const userName = localStorage.getItem('userName');
   if (userName) headers['X-User-Name'] = userName;
 
-  const res = await fetch(buildUrl(path), { ...options, headers });
+  const res = await fetchWithFallbacks(path, { ...options, headers });
 
   if (res.status === 401 && withAuth && retry) {
     const refreshed = await tryRefreshToken();

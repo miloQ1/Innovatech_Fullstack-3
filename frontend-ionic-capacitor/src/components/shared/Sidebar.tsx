@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 import {
   IonContent,
   IonIcon,
@@ -9,7 +9,16 @@ import {
   IonMenu,
   IonMenuToggle,
 } from '@ionic/react';
-import { analyticsOutline, businessOutline, chatbubblesOutline, folderOpenOutline, gridOutline, notificationsOutline, peopleOutline } from 'ionicons/icons';
+import {
+  analyticsOutline,
+  businessOutline,
+  chatbubblesOutline,
+  folderOpenOutline,
+  gridOutline,
+  logOutOutline,
+  notificationsOutline,
+  peopleOutline,
+} from 'ionicons/icons';
 import type { Client, Project } from '../../types/projects';
 import { clientService, projectService } from '../../api/projectService';
 import { useAuth } from '../../hooks/useAuth';
@@ -19,7 +28,8 @@ import { formatStatus } from '../../utils/formatStatus';
 const INACTIVE_STATUSES = new Set(['COMPLETED', 'CANCELLED']);
 
 export function Sidebar() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
+  const history = useHistory();
   const location = useLocation();
   const [projects, setProjects] = useState<Project[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
@@ -53,6 +63,10 @@ export function Sidebar() {
     .filter((c) => c.status === 'ACTIVE')
     .slice(0, 5);
 
+  const handleLogout = async () => {
+    await logout();
+    history.replace('/login');
+  };
   return (
     <IonMenu contentId="main-content" type="overlay">
       <IonContent>
@@ -148,6 +162,18 @@ export function Sidebar() {
               </IonMenuToggle>
             </>
           )}
+          <p className="sidebar-section-label">Cuenta</p>
+          <IonMenuToggle autoHide>
+            <IonItem
+              className="sidebar-link sidebar-logout"
+              button
+              detail={false}
+              onClick={handleLogout}
+            >
+              <IonIcon icon={logOutOutline} slot="start" />
+              <IonLabel>Cerrar sesión</IonLabel>
+            </IonItem>
+          </IonMenuToggle>
         </IonList>
       </IonContent>
     </IonMenu>

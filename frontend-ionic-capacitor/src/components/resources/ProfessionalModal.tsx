@@ -24,9 +24,10 @@ interface ProfessionalModalProps {
   initialData?: Partial<Professional> | null;
   onClose: () => void;
   onSave: () => void;
+  createSelf?: boolean;
 }
 
-export function ProfessionalModal({ professional, initialData, onClose, onSave }: ProfessionalModalProps) {
+export function ProfessionalModal({ professional, initialData, onClose, onSave, createSelf = false }: ProfessionalModalProps) {
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -69,6 +70,8 @@ export function ProfessionalModal({ professional, initialData, onClose, onSave }
         const id = getProfessionalId(professional as Professional & Record<string, unknown>);
         if (!id) throw new Error('No se encontró el ID del profesional para editar.');
         await professionalService.update(id, form);
+      } else if (createSelf) {
+        await professionalService.createMe(form);
       } else {
         await professionalService.create(form);
       }

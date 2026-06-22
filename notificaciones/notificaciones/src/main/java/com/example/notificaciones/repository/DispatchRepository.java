@@ -11,4 +11,5 @@ public interface DispatchRepository extends JpaRepository<Dispatch, Long> {
     List<Dispatch> findByNotificationEventEventId(Long eventId);
     List<Dispatch> findByRecipientResourceId(Long recipientResourceId);
     List<Dispatch> findByRecipientResourceIdOrderBySentAtDesc(Long recipientResourceId);
+    boolean existsByRecipientResourceIdAndNotificationEventEventType(Long recipientResourceId, String eventType);
 }

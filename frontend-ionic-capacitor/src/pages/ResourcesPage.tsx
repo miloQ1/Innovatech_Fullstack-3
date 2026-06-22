@@ -46,6 +46,7 @@ export function ResourcesPage() {
   const [selectedPro, setSelectedPro] = useState<Professional | null>(null);
   const [initialProfessionalData, setInitialProfessionalData] = useState<Partial<Professional> | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [createSelfProfile, setCreateSelfProfile] = useState(false);
   const [proToDelete, setProToDelete] = useState<Professional | null>(null);
 
   const loadResources = async () => {
@@ -106,15 +107,18 @@ export function ResourcesPage() {
   const openEmptyModal = () => {
     setSelectedPro(null);
     setInitialProfessionalData(null);
+    setCreateSelfProfile(false);
     setShowModal(true);
   };
 
   const openProfessionalModalFromUser = (userResource: DisplayResource) => {
     setSelectedPro(null);
+    setCreateSelfProfile(userResource.authUserId === user?.id && !isAdmin);
     setInitialProfessionalData({
       firstName: userResource.firstName,
       lastName: userResource.lastName,
       email: userResource.email,
+      employeeCode: userResource.authUserId,
       roleName: '',
       seniority: 'MID',
       location: 'santiago',
@@ -183,23 +187,31 @@ export function ResourcesPage() {
             const id = getProfessionalId(resource as unknown as Professional & Record<string, unknown>);
             const key = resource.source === 'auth-user' ? `user-${resource.authUserId}` : `pro-${id ?? resource.email}`;
             return (
-              <IonCard key={key} className="app-card accent-card">
+              <IonCard key={key} className="app-card accent-card resource-card">
                 <IonCardHeader>
-                  <div className="card-title-row">
+                  <div className="resource-card-header">
                     <div className="resource-avatar">
                       {resource.firstName?.charAt(0)}{resource.lastName?.charAt(0)}
                     </div>
-                    <div className="card-title-main">
-                      <IonCardTitle>{resource.firstName} {resource.lastName}</IonCardTitle>
-                      <p className="muted">{resource.roleName ?? 'Sin rol'}{resource.userName ? ` · @${resource.userName}` : ''}</p>
-                    </div>
-                    <div className="button-row">
-                      <IonBadge color={resource.source === 'professional' ? 'primary' : 'medium'}>
-                        {resource.source === 'professional' ? 'Profesional' : 'Usuario'}
-                      </IonBadge>
-                      <IonBadge color={resource.status === 'ACTIVE' ? 'success' : resource.status === 'ON_LEAVE' ? 'warning' : 'medium'}>
-                        {formatStatus(resource.status)}
-                      </IonBadge>
+
+                    <div className="resource-card-main">
+                      <IonCardTitle className="resource-card-name">
+                        {resource.firstName} {resource.lastName}
+                      </IonCardTitle>
+
+                      <p className="muted resource-card-role">
+                        {resource.roleName ?? 'Sin rol'}{resource.userName ? ` · @${resource.userName}` : ''}
+                      </p>
+
+                      <div className="resource-card-badges">
+                        <IonBadge color={resource.source === 'professional' ? 'primary' : 'medium'}>
+                          {resource.source === 'professional' ? 'Profesional' : 'Usuario'}
+                        </IonBadge>
+
+                        <IonBadge color={resource.status === 'ACTIVE' ? 'success' : resource.status === 'ON_LEAVE' ? 'warning' : 'medium'}>
+                          {formatStatus(resource.status)}
+                        </IonBadge>
+                      </div>
                     </div>
                   </div>
                 </IonCardHeader>
@@ -243,7 +255,7 @@ export function ResourcesPage() {
                       <div className="card-actions">
                         {resource.source === 'professional' ? (
                           <>
-                            <IonButton type="button" size="small" fill="solid" color="primary" onClick={() => { setSelectedPro(resource); setInitialProfessionalData(null); setShowModal(true); }}>
+                            <IonButton type="button" size="small" fill="solid" color="primary" onClick={() => { setSelectedPro(resource); setInitialProfessionalData(null); setCreateSelfProfile(false); setShowModal(true); }}>
                               Editar
                             </IonButton>
                             {isAdmin && (
@@ -253,9 +265,9 @@ export function ResourcesPage() {
                             )}
                           </>
                         ) : (
-                          isAdmin && (
+                          (isAdmin || resource.authUserId === user?.id) && (
                             <IonButton type="button" size="small" fill="solid" color="primary" onClick={() => openProfessionalModalFromUser(resource)}>
-                              Crear ficha profesional
+                              {resource.authUserId === user?.id && !isAdmin ? 'Crear mi ficha profesional' : 'Crear ficha profesional'}
                             </IonButton>
                           )
                         )}
@@ -273,8 +285,9 @@ export function ResourcesPage() {
         <ProfessionalModal
           professional={selectedPro}
           initialData={initialProfessionalData}
-          onClose={() => setShowModal(false)}
-          onSave={() => { setShowModal(false); setInitialProfessionalData(null); loadResources(); }}
+          createSelf={createSelfProfile}
+          onClose={() => { setShowModal(false); setCreateSelfProfile(false); }}
+          onSave={() => { setShowModal(false); setInitialProfessionalData(null); setCreateSelfProfile(false); loadResources(); }}
         />
       )}
       {proToDelete && <ConfirmModal title={`Eliminar a ${proToDelete.firstName} ${proToDelete.lastName}`} message="Esta acción eliminará el profesional permanentemente." confirmLabel="Eliminar" danger onConfirm={handleDelete} onCancel={() => setProToDelete(null)} />}

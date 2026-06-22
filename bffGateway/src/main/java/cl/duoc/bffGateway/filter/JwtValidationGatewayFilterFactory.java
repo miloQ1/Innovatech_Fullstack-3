@@ -37,15 +37,23 @@ public class JwtValidationGatewayFilterFactory extends AbstractGatewayFilterFact
                 return exchange.getResponse().setComplete();
             }
 
-            // Inyectar userId, userName y role como headers para los microservicios
-            String userId   = jwtService.extractUserId(token);
-            String userName = jwtService.extractUserName(token);
-            String role     = jwtService.extractRole(token);
+            // Inyectar datos del usuario como headers para los microservicios.
+            // El JWT ya fue validado por el Gateway, por lo que los servicios internos
+            // pueden usar estos headers para autorización fina (perfil propio, bandeja propia, etc.).
+            String userId    = jwtService.extractUserId(token);
+            String userName  = jwtService.extractUserName(token);
+            String role      = jwtService.extractRole(token);
+            String email     = jwtService.extractEmail(token);
+            String firstName = jwtService.extractFirstName(token);
+            String lastName  = jwtService.extractLastName(token);
 
             var request = exchange.getRequest().mutate()
-                .header("X-User-Id",   userId)
-                .header("X-User-Name", userName)
+                .header("X-User-Id", userId != null ? userId : "")
+                .header("X-User-Name", userName != null ? userName : "")
                 .header("X-User-Role", role != null ? role : "MEMBER")
+                .header("X-User-Email", email != null ? email : "")
+                .header("X-User-First-Name", firstName != null ? firstName : "")
+                .header("X-User-Last-Name", lastName != null ? lastName : "")
                 .build();
 
             return chain.filter(exchange.mutate().request(request).build());

@@ -15,6 +15,12 @@ export const notificationService = {
   send(data: NotificationRequest): Promise<NotificationResponse> {
     return apiClient.post<NotificationResponse>(`${BACKEND_ROUTES.notifications}/send`, data, true);
   },
+  getMyInbox(): Promise<DispatchResult[]> {
+    return apiClient.get<DispatchResult[]>(`${BACKEND_ROUTES.notifications}/me`, true);
+  },
+  sendTestToMe(): Promise<NotificationResponse> {
+    return apiClient.post<NotificationResponse>(`${BACKEND_ROUTES.notifications}/test-me`, {}, true);
+  },
   getInboxByRecipient(recipientResourceId: number): Promise<DispatchResult[]> {
     return apiClient.get<DispatchResult[]>(`${BACKEND_ROUTES.notifications}/recipient/${recipientResourceId}`, true);
   },
@@ -38,6 +44,12 @@ export const notificationTemplateService = {
 export const notificationPreferenceService = {
   getAll(): Promise<NotificationPreference[]> {
     return apiClient.get<NotificationPreference[]>(BACKEND_ROUTES.notificationPreferences, true);
+  },
+  getMine(): Promise<NotificationPreference[]> {
+    return apiClient.get<NotificationPreference[]>(`${BACKEND_ROUTES.notificationPreferences}/me`, true);
+  },
+  saveMine(data: Partial<NotificationPreference>): Promise<NotificationPreference> {
+    return apiClient.post<NotificationPreference>(`${BACKEND_ROUTES.notificationPreferences}/me`, data, true);
   },
   getByResource(resourceId: number): Promise<NotificationPreference[]> {
     return apiClient.get<NotificationPreference[]>(`${BACKEND_ROUTES.notificationPreferences}/resource/${resourceId}`, true);

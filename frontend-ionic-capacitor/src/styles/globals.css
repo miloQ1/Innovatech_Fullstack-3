@@ -320,3 +320,301 @@ ion-router-outlet#main-content,
 .form-grid-span {
   grid-column: 1 / -1;
 }
+
+/* Header deslizable para móvil */
+.app-navbar-toolbar {
+  --min-height: 58px;
+}
+
+.navbar-title {
+  flex: 0 0 auto;
+  max-width: 145px;
+  font-weight: 800;
+}
+
+.navbar-actions-scroll {
+  max-width: calc(100vw - 170px);
+  overflow-x: auto;
+  overflow-y: hidden;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.navbar-actions-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.navbar-actions-scroll ion-button,
+.navbar-actions-scroll .navbar-link,
+.navbar-actions-scroll .navbar-logout-button,
+.navbar-actions-scroll .user-avatar {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.sidebar-logout {
+  margin-top: 8px;
+  --color: var(--ion-color-danger);
+}
+
+.sidebar-logout ion-icon {
+  color: var(--ion-color-danger);
+}
+
+@media (max-width: 768px) {
+  .navbar-title {
+    max-width: 115px;
+    font-size: 1rem;
+  }
+
+  .navbar-actions-scroll {
+    max-width: calc(100vw - 135px);
+  }
+
+  .navbar-link {
+    font-size: 0.82rem;
+    --padding-start: 8px;
+    --padding-end: 8px;
+  }
+
+  .navbar-link ion-icon {
+    margin-inline-end: 4px;
+  }
+
+  .navbar-logout-button {
+    font-size: 0.82rem;
+    --padding-start: 8px;
+    --padding-end: 8px;
+  }
+
+  .user-avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 0.75rem;
+    margin-inline: 4px;
+  }
+}
+
+/* Corrección tarjetas de Recursos en móvil */
+.professional-card,
+.resource-card,
+ion-card.professional-card,
+ion-card.resource-card {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.professional-card-header,
+.resource-card-header,
+.professional-header,
+.resource-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.professional-avatar,
+.resource-avatar {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+}
+
+.professional-info,
+.resource-info,
+.professional-main,
+.resource-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.professional-name,
+.resource-name,
+.professional-card h2,
+.resource-card h2,
+.professional-card h3,
+.resource-card h3 {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: normal;
+  line-height: 1.25;
+  font-size: 1.05rem;
+}
+
+.professional-role,
+.resource-role {
+  display: block;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: normal;
+  line-height: 1.3;
+}
+
+.professional-badges,
+.resource-badges,
+.status-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.professional-badges ion-badge,
+.resource-badges ion-badge,
+.status-badges ion-badge {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.professional-details,
+.resource-details {
+  margin-top: 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.professional-details p,
+.resource-details p,
+.professional-detail,
+.resource-detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+/* En móvil, los badges bajan y no aplastan el nombre */
+@media (max-width: 600px) {
+  .professional-card-header,
+  .resource-card-header,
+  .professional-header,
+  .resource-header {
+    align-items: flex-start;
+  }
+
+  .professional-avatar,
+  .resource-avatar {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .professional-name,
+  .resource-name,
+  .professional-card h2,
+  .resource-card h2,
+  .professional-card h3,
+  .resource-card h3 {
+    font-size: 1rem;
+    letter-spacing: normal;
+    writing-mode: horizontal-tb;
+    text-orientation: mixed;
+  }
+
+  .professional-badges,
+  .resource-badges,
+  .status-badges {
+    width: 100%;
+  }
+}
+
+/* Corrección específica para ResourcesPage móvil */
+.resource-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.resource-card .resource-avatar {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+}
+
+.resource-card-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.resource-card-name {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  line-height: 1.25;
+  font-size: 1.15rem;
+  letter-spacing: normal;
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+}
+
+.resource-card-role {
+  margin-top: 6px;
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: anywhere;
+  line-height: 1.3;
+}
+
+.resource-card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.resource-card-badges ion-badge {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.resource-card .card-info-list {
+  min-width: 0;
+}
+
+.resource-card .card-info-row {
+  min-width: 0;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+  .resource-card-header {
+    gap: 10px;
+  }
+
+  .resource-card .resource-avatar {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+  }
+
+  .resource-card-name {
+    font-size: 1.05rem;
+  }
+
+  .resource-card-badges {
+    margin-top: 8px;
+  }
+}

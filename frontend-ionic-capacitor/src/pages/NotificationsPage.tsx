@@ -1,5 +1,5 @@
 import type * as React from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   IonBadge,
   IonButton,
@@ -21,7 +21,7 @@ import {
   IonTextarea,
   IonToggle,
 } from '@ionic/react';
-import { mailOutline, notificationsOutline, paperPlaneOutline, settingsOutline, documentTextOutline } from 'ionicons/icons';
+import { documentTextOutline, mailOutline, notificationsOutline, paperPlaneOutline, settingsOutline } from 'ionicons/icons';
 import {
   notificationPreferenceService,
   notificationService,
@@ -35,12 +35,12 @@ import { getProfessionalId } from '../utils/ids';
 import { formatStatus } from '../utils/formatStatus';
 
 const channels: NotificationChannel[] = ['IN_APP', 'EMAIL', 'WEBHOOK'];
-const defaultEventTypes = ['ASSIGNMENT_CREATED', 'MENTION_CREATED', 'TASK_STATUS_CHANGED', 'PROJECT_STATUS_CHANGED', 'KPI_ALERT'];
+const defaultEventTypes = ['ASSIGNMENT_CREATED', 'MENTION_CREATED', 'TASK_STATUS_CHANGED', 'PROJECT_STATUS_CHANGED', 'KPI_ALERT', 'WELCOME', 'TEST_NOTIFICATION'];
 
-type TabValue = 'inbox' | 'send' | 'preferences' | 'templates';
+type TabValue = 'inbox' | 'test' | 'preferences' | 'templates';
 
-function professionalName(professional?: Professional) {
-  if (!professional) return 'Recurso no encontrado';
+function professionalName(professional?: Professional | null) {
+  if (!professional) return 'Mi usuario';
   const name = `${professional.firstName ?? ''} ${professional.lastName ?? ''}`.trim();
   return name || professional.email || `Recurso #${getProfessionalId(professional as Professional & Record<string, unknown>) ?? ''}`;
 }
@@ -65,33 +65,17 @@ function formatDate(value?: string) {
   return date.toLocaleString('es-CL', { dateStyle: 'short', timeStyle: 'short' });
 }
 
-function asChannelArray(value: unknown): NotificationChannel[] {
-  if (Array.isArray(value)) return value.filter((item): item is NotificationChannel => channels.includes(item as NotificationChannel));
-  if (typeof value === 'string' && channels.includes(value as NotificationChannel)) return [value as NotificationChannel];
-  return ['IN_APP'];
-}
-
 export function NotificationsPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
-  const [professionals, setProfessionals] = useState<Professional[]>([]);
-  const [hasOwnProfessional, setHasOwnProfessional] = useState(true);
-  const [selectedResourceId, setSelectedResourceId] = useState<number | null>(null);
-  const [inbox, setInbox] = useState<Awaited<ReturnType<typeof notificationService.getInboxByRecipient>>>([]);
+  const [myProfessional, setMyProfessional] = useState<Professional | null>(null);
+  const [inbox, setInbox] = useState<Awaited<ReturnType<typeof notificationService.getMyInbox>>>([]);
   const [preferences, setPreferences] = useState<NotificationPreference[]>([]);
   const [templates, setTemplates] = useState<NotificationTemplate[]>([]);
   const [activeTab, setActiveTab] = useState<TabValue>('inbox');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'danger' | 'warning'; text: string } | null>(null);
-
-  const [sendForm, setSendForm] = useState({
-    eventType: 'ASSIGNMENT_CREATED',
-    entityId: '',
-    channels: ['IN_APP'] as NotificationChannel[],
-    projectName: '',
-    body: 'Tienes una nueva notificación en Innovatech.',
-  });
 
   const [templateForm, setTemplateForm] = useState({
     eventType: 'ASSIGNMENT_CREATED',
@@ -101,135 +85,54 @@ export function NotificationsPage() {
     language: 'es',
   });
 
-  const professionalsById = useMemo(() => new Map(
-    professionals
-      .map((item) => [getProfessionalId(item as Professional & Record<string, unknown>), item] as const)
-      .filter(([id]) => !!id),
-  ), [professionals]);
-
-  const loadInbox = useCallback(async (resourceId: number) => {
-    const [inboxResult, preferencesResult] = await Promise.allSettled([
-      notificationService.getInboxByRecipient(resourceId),
-      notificationPreferenceService.getByResource(resourceId),
-    ]);
-
-    setInbox(inboxResult.status === 'fulfilled' ? inboxResult.value : []);
-    setPreferences(preferencesResult.status === 'fulfilled' ? preferencesResult.value : []);
-
-    if (inboxResult.status === 'rejected' || preferencesResult.status === 'rejected') {
-      setMessage({ type: 'warning', text: 'No se pudieron cargar todas las notificaciones. Revisa que el microservicio Notificaciones y sus rutas en el BFF estén levantados.' });
-    }
-  }, []);
-
   const loadPage = useCallback(async () => {
     setLoading(true);
     setMessage(null);
     try {
-      if (isAdmin) {
-        const [professionalResult, templateResult] = await Promise.allSettled([
-          professionalService.getAll(),
-          notificationTemplateService.getAll(),
-        ]);
+      const [professionalResult, inboxResult, preferencesResult, templateResult] = await Promise.allSettled([
+        professionalService.getMe(),
+        notificationService.getMyInbox(),
+        notificationPreferenceService.getMine(),
+        isAdmin ? notificationTemplateService.getAll() : Promise.resolve([] as NotificationTemplate[]),
+      ]);
 
-        const loadedProfessionals = professionalResult.status === 'fulfilled' ? professionalResult.value : [];
-        setProfessionals(loadedProfessionals);
-        setTemplates(templateResult.status === 'fulfilled' ? templateResult.value : []);
+      setMyProfessional(professionalResult.status === 'fulfilled' ? professionalResult.value : null);
+      setInbox(inboxResult.status === 'fulfilled' ? inboxResult.value : []);
+      setPreferences(preferencesResult.status === 'fulfilled' ? preferencesResult.value : []);
+      setTemplates(templateResult.status === 'fulfilled' ? templateResult.value : []);
 
-        const currentProfessional = loadedProfessionals.find((item) => item.email?.toLowerCase() === user?.email?.toLowerCase());
-        const currentId = currentProfessional ? getProfessionalId(currentProfessional as Professional & Record<string, unknown>) : undefined;
-        const fallbackId = loadedProfessionals[0] ? getProfessionalId(loadedProfessionals[0] as Professional & Record<string, unknown>) : undefined;
-        const resourceId = selectedResourceId ?? currentId ?? fallbackId ?? null;
-        setSelectedResourceId(resourceId);
-
-        if (resourceId) {
-          await loadInbox(resourceId);
-        } else {
-          setInbox([]);
-          setPreferences([]);
-          setMessage({ type: 'warning', text: 'No hay profesionales creados. Para probar la bandeja, primero crea una ficha profesional en Recursos Humanos.' });
-        }
-        return;
+      if (inboxResult.status === 'rejected') {
+        setMessage({ type: 'warning', text: inboxResult.reason instanceof Error ? inboxResult.reason.message : 'No se pudo cargar tu bandeja de notificaciones.' });
       }
-
-      const me = await professionalService.getMe();
-      if (!me) {
-        setHasOwnProfessional(false);
-        setProfessionals([]);
-        setSelectedResourceId(null);
-        setInbox([]);
-        setPreferences([]);
-        setMessage({ type: 'warning', text: 'Tu cuenta todavía no tiene una ficha profesional vinculada, así que no hay notificaciones para mostrar.' });
-        return;
-      }
-
-      setHasOwnProfessional(true);
-      setProfessionals([me]);
-      const myId = getProfessionalId(me as Professional & Record<string, unknown>) ?? null;
-      setSelectedResourceId(myId);
-      if (myId) await loadInbox(myId);
     } catch (error) {
       setMessage({ type: 'danger', text: error instanceof Error ? error.message : 'No se pudo cargar Notificaciones.' });
     } finally {
       setLoading(false);
     }
-  }, [isAdmin, loadInbox, selectedResourceId, user?.email]);
+  }, [isAdmin]);
 
   useEffect(() => { loadPage(); }, [loadPage]);
 
-  const handleRecipientChange = async (resourceId: number) => {
-    setSelectedResourceId(resourceId);
-    setMessage(null);
-    setLoading(true);
-    try {
-      await loadInbox(resourceId);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSendNotification = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!selectedResourceId) {
-      setMessage({ type: 'danger', text: 'Selecciona un destinatario.' });
-      return;
-    }
-
+  const handleSendTest = async () => {
     setSaving(true);
     setMessage(null);
     try {
-      const response = await notificationService.send({
-        sourceService: 'frontend-ionic-capacitor',
-        eventType: sendForm.eventType,
-        entityId: sendForm.entityId ? Number(sendForm.entityId) : undefined,
-        recipientResourceIds: [selectedResourceId],
-        channels: sendForm.channels,
-        payload: {
-          projectName: sendForm.projectName,
-          message: sendForm.body,
-          userName: user?.userName,
-        },
-      });
-      setMessage({ type: 'success', text: response.message || 'Notificación enviada correctamente.' });
-      await loadInbox(selectedResourceId);
+      const response = await notificationService.sendTestToMe();
+      setMessage({ type: 'success', text: response.message || 'Notificación de prueba enviada a tu bandeja.' });
+      setInbox(await notificationService.getMyInbox());
       setActiveTab('inbox');
     } catch (error) {
-      setMessage({ type: 'danger', text: error instanceof Error ? error.message : 'No se pudo enviar la notificación.' });
+      setMessage({ type: 'danger', text: error instanceof Error ? error.message : 'No se pudo enviar la notificación de prueba.' });
     } finally {
       setSaving(false);
     }
   };
 
   const savePreference = async (channel: NotificationChannel, enabled: boolean) => {
-    if (!selectedResourceId) return;
     setMessage(null);
     try {
-      const existing = preferences.find((item) => item.channel === channel);
-      if (existing) {
-        await notificationPreferenceService.update(existing.preferenceId, { ...existing, enabled });
-      } else {
-        await notificationPreferenceService.create({ resourceId: selectedResourceId, channel, enabled, frequency: 'IMMEDIATE' });
-      }
-      await loadInbox(selectedResourceId);
+      await notificationPreferenceService.saveMine({ channel, enabled, frequency: 'IMMEDIATE' });
+      setPreferences(await notificationPreferenceService.getMine());
       setMessage({ type: 'success', text: 'Preferencia guardada.' });
     } catch (error) {
       setMessage({ type: 'danger', text: error instanceof Error ? error.message : 'No se pudo guardar la preferencia.' });
@@ -261,8 +164,6 @@ export function NotificationsPage() {
     }
   };
 
-  const selectedProfessional = selectedResourceId ? professionalsById.get(selectedResourceId) : undefined;
-
   if (loading) return <div className="ion-text-center ion-padding"><IonSpinner /><p className="muted">Cargando notificaciones...</p></div>;
 
   return (
@@ -271,9 +172,7 @@ export function NotificationsPage() {
         <div>
           <h1 className="page-title"><IonIcon icon={notificationsOutline} />Notificaciones</h1>
           <p className="page-subtitle">
-            {isAdmin
-              ? 'Bandeja, preferencias, plantillas y prueba de despachos del microservicio Notificaciones.'
-              : 'Tus notificaciones. El envío de pruebas, las plantillas y las preferencias son administradas por el admin de la plataforma.'}
+            Bandeja personal de {professionalName(myProfessional)}. Por seguridad, cada usuario solo puede ver sus propias notificaciones.
           </p>
         </div>
         <IonButton type="button" fill="outline" onClick={loadPage}>Actualizar</IonButton>
@@ -281,44 +180,27 @@ export function NotificationsPage() {
 
       {message && <IonText color={message.type}><p>{message.text}</p></IonText>}
 
-      {isAdmin ? (
-        <IonCard className="app-card ion-margin-bottom">
-          <IonCardContent>
-            <IonItem>
-              <IonSelect
-                label="Ver bandeja de"
-                labelPlacement="stacked"
-                value={selectedResourceId ?? ''}
-                onIonChange={(event) => handleRecipientChange(Number(event.detail.value))}
-              >
-                {professionals.map((professional) => {
-                  const id = getProfessionalId(professional as Professional & Record<string, unknown>);
-                  return id ? <IonSelectOption key={id} value={id}>{professionalName(professional)} · #{id}</IonSelectOption> : null;
-                })}
-              </IonSelect>
-            </IonItem>
-            {selectedProfessional && <p className="muted ion-padding-start">Mostrando notificaciones de {professionalName(selectedProfessional)}.</p>}
-          </IonCardContent>
-        </IonCard>
-      ) : (
-        hasOwnProfessional && selectedProfessional && (
-          <p className="muted ion-margin-bottom">Mostrando notificaciones de {professionalName(selectedProfessional)}.</p>
-        )
-      )}
+      <IonCard className="app-card ion-margin-bottom">
+        <IonCardContent>
+          <p className="muted">
+            La notificación de bienvenida se crea automáticamente al abrir esta bandeja o al registrarse. Las demás llegan automáticamente desde Asignaciones, Proyectos, Tareas y Colaboración cuando esos módulos generan eventos.
+          </p>
+        </IonCardContent>
+      </IonCard>
 
       <IonSegment value={activeTab} scrollable onIonChange={(event) => setActiveTab((event.detail.value as TabValue) ?? 'inbox')}>
-        <IonSegmentButton value="inbox">Bandeja ({inbox.length})</IonSegmentButton>
-        {isAdmin && <IonSegmentButton value="send">Enviar prueba</IonSegmentButton>}
-        {isAdmin && <IonSegmentButton value="preferences">Preferencias</IonSegmentButton>}
+        <IonSegmentButton value="inbox">Mi bandeja ({inbox.length})</IonSegmentButton>
+        <IonSegmentButton value="test">Prueba</IonSegmentButton>
+        <IonSegmentButton value="preferences">Mis preferencias</IonSegmentButton>
         {isAdmin && <IonSegmentButton value="templates">Plantillas ({templates.length})</IonSegmentButton>}
       </IonSegment>
 
       {activeTab === 'inbox' && (
         <IonCard className="app-card ion-margin-top">
-          <IonCardHeader><IonCardTitle className="section-title"><IonIcon icon={mailOutline} />Bandeja de entrada</IonCardTitle></IonCardHeader>
+          <IonCardHeader><IonCardTitle className="section-title"><IonIcon icon={mailOutline} />Mi bandeja de entrada</IonCardTitle></IonCardHeader>
           <IonCardContent>
             {inbox.length === 0 ? (
-              <p className="muted">Este recurso todavía no tiene notificaciones.</p>
+              <p className="muted">Todavía no tienes notificaciones.</p>
             ) : (
               <IonList inset>
                 {inbox.map((item) => (
@@ -329,6 +211,7 @@ export function NotificationsPage() {
                       <p className="muted">{formatDate(item.sentAt)}</p>
                       {item.errorMessage && <p className="muted">Error: {item.errorMessage}</p>}
                     </IonLabel>
+                    <IonBadge color={statusColor(item.deliveryStatus)} slot="end">{formatStatus(item.deliveryStatus)}</IonBadge>
                   </IonItem>
                 ))}
               </IonList>
@@ -337,33 +220,19 @@ export function NotificationsPage() {
         </IonCard>
       )}
 
-      {isAdmin && activeTab === 'send' && (
+      {activeTab === 'test' && (
         <IonCard className="app-card ion-margin-top">
-          <IonCardHeader><IonCardTitle className="section-title"><IonIcon icon={paperPlaneOutline} />Enviar notificación de prueba</IonCardTitle></IonCardHeader>
+          <IonCardHeader><IonCardTitle className="section-title"><IonIcon icon={paperPlaneOutline} />Enviar prueba a mi bandeja</IonCardTitle></IonCardHeader>
           <IonCardContent>
-            <form onSubmit={handleSendNotification} className="form-grid">
-              <IonItem>
-                <IonSelect label="Tipo de evento" labelPlacement="stacked" value={sendForm.eventType} onIonChange={(event) => setSendForm((current) => ({ ...current, eventType: String(event.detail.value) }))}>
-                  {defaultEventTypes.map((eventType) => <IonSelectOption key={eventType} value={eventType}>{eventType}</IonSelectOption>)}
-                </IonSelect>
-              </IonItem>
-              <IonItem><IonInput label="ID entidad relacionada" labelPlacement="stacked" type="number" value={sendForm.entityId} onIonInput={(event) => setSendForm((current) => ({ ...current, entityId: String(event.detail.value ?? '') }))} /></IonItem>
-              <IonItem>
-                <IonSelect multiple label="Canales" labelPlacement="stacked" value={sendForm.channels} onIonChange={(event) => setSendForm((current) => ({ ...current, channels: asChannelArray(event.detail.value) }))}>
-                  {channels.map((channel) => <IonSelectOption key={channel} value={channel}>{channelLabel(channel)}</IonSelectOption>)}
-                </IonSelect>
-              </IonItem>
-              <IonItem><IonInput label="Proyecto o contexto" labelPlacement="stacked" value={sendForm.projectName} onIonInput={(event) => setSendForm((current) => ({ ...current, projectName: String(event.detail.value ?? '') }))} /></IonItem>
-              <IonItem className="form-grid-span"><IonTextarea label="Mensaje" labelPlacement="stacked" value={sendForm.body} autoGrow onIonInput={(event) => setSendForm((current) => ({ ...current, body: String(event.detail.value ?? '') }))} /></IonItem>
-              <IonButton type="submit" disabled={saving || !selectedResourceId}>{saving ? 'Enviando...' : 'Enviar notificación'}</IonButton>
-            </form>
+            <p className="muted">Esta acción crea una notificación IN_APP solo para tu usuario logeado.</p>
+            <IonButton type="button" onClick={handleSendTest} disabled={saving}>{saving ? 'Enviando...' : 'Enviar notificación de prueba'}</IonButton>
           </IonCardContent>
         </IonCard>
       )}
 
-      {isAdmin && activeTab === 'preferences' && (
+      {activeTab === 'preferences' && (
         <IonCard className="app-card ion-margin-top">
-          <IonCardHeader><IonCardTitle className="section-title"><IonIcon icon={settingsOutline} />Preferencias del destinatario</IonCardTitle></IonCardHeader>
+          <IonCardHeader><IonCardTitle className="section-title"><IonIcon icon={settingsOutline} />Mis preferencias</IonCardTitle></IonCardHeader>
           <IonCardContent>
             <IonList inset>
               {channels.map((channel) => {
