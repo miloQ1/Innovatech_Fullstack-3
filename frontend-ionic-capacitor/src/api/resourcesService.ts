@@ -10,7 +10,7 @@ import type {
   Skill,
   SkillRequest,
 } from '../types/resources';
-import { apiClient } from './apiClient';
+import { apiClient, ApiClientError } from './apiClient';
 
 export const professionalService = {
   getAll(): Promise<Professional[]> {
@@ -18,6 +18,14 @@ export const professionalService = {
   },
   getById(id: number): Promise<Professional> {
     return apiClient.get<Professional>(`${BACKEND_ROUTES.professionals}/${id}`, true);
+  },
+  async getMe(): Promise<Professional | null> {
+    try {
+      return await apiClient.get<Professional>(`${BACKEND_ROUTES.professionals}/me`, true);
+    } catch (error) {
+      if (error instanceof ApiClientError && error.status === 404) return null;
+      throw error;
+    }
   },
   create(data: ProfessionalRequest): Promise<Professional> {
     return apiClient.post<Professional>(BACKEND_ROUTES.professionals, data, true);

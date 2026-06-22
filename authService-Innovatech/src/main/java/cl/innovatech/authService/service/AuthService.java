@@ -90,7 +90,7 @@ public class AuthService {
         professional.put("weeklyCapacityHours", 40);
         
         restTemplate.postForObject(
-            "http://localhost:8083/api/professionals",
+            "http://ms-recursos:8083/api/professionals",
             professional,
             Object.class
         );
@@ -255,6 +255,7 @@ public class AuthService {
         dto.setLastName(user.getLastName());
         dto.setEmail(user.getEmail());
         dto.setStatus(user.getStatus());
+        dto.setRole(user.getRole());
         dto.setEnabled(user.getEnabled());
         dto.setLastLoginAt(user.getLastLoginAt());
         dto.setCreatedAt(user.getCreatedAt());

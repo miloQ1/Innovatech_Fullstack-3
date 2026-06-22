@@ -77,9 +77,6 @@ export const mentionService = {
 };
 
 export const activityLogService = {
-  // El microservicio de colaboración expone /api/activity-logs.
-  // Revisa el BFF: actualmente en application.properties aparece /api/activity/**,
-  // por lo que se debe agregar una ruta para /api/activity-logs/** si quieres usarlo vía gateway.
   getByProject(projectId: number): Promise<ActivityLog[]> {
     return apiClient.get<ActivityLog[]>(`${BACKEND_ROUTES.activityLogs}/project/${projectId}`, true);
   },

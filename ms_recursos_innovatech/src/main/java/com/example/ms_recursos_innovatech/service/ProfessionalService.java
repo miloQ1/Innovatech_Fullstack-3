@@ -29,6 +29,12 @@ public class ProfessionalService {
                 .orElse(null);
     }
 
+    public ProfessionalResponseDTO findByEmployeeCode(String employeeCode) {
+        return professionalRepository.findByEmployeeCode(employeeCode)
+                .map(this::toResponseDTO)
+                .orElse(null);
+    }
+
     public ProfessionalResponseDTO save(ProfessionalRequestDTO requestDTO) {
         Professional professional = new Professional();
         applyRequest(professional, requestDTO);

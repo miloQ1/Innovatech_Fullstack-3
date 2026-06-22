@@ -155,6 +155,7 @@ public class UserService {
         dto.setLastName(user.getLastName());
         dto.setEmail(user.getEmail());
         dto.setStatus(user.getStatus());
+        dto.setRole(user.getRole());
         dto.setEnabled(user.getEnabled());
         dto.setLastLoginAt(user.getLastLoginAt());
         dto.setCreatedAt(user.getCreatedAt());

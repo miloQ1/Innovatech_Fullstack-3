@@ -10,6 +10,7 @@ public class UserResponseDTO {
     private String lastName;
     private String email;
     private String status;
+    private String role;
     private Boolean enabled;
     private LocalDateTime lastLoginAt;
     private LocalDateTime createdAt;
@@ -57,6 +58,10 @@ public class UserResponseDTO {
         return status;
     }
 
+    public String getRole() {
+        return role;
+    }
+
     public Boolean getEnabled() {
         return enabled;
     }
@@ -95,6 +100,10 @@ public class UserResponseDTO {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 
     public void setEnabled(Boolean enabled) {

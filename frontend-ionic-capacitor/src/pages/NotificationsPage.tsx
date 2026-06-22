@@ -73,7 +73,9 @@ function asChannelArray(value: unknown): NotificationChannel[] {
 
 export function NotificationsPage() {
   const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
   const [professionals, setProfessionals] = useState<Professional[]>([]);
+  const [hasOwnProfessional, setHasOwnProfessional] = useState(true);
   const [selectedResourceId, setSelectedResourceId] = useState<number | null>(null);
   const [inbox, setInbox] = useState<Awaited<ReturnType<typeof notificationService.getInboxByRecipient>>>([]);
   const [preferences, setPreferences] = useState<NotificationPreference[]>([]);
@@ -123,34 +125,54 @@ export function NotificationsPage() {
     setLoading(true);
     setMessage(null);
     try {
-      const [professionalResult, templateResult] = await Promise.allSettled([
-        professionalService.getAll(),
-        notificationTemplateService.getAll(),
-      ]);
+      if (isAdmin) {
+        const [professionalResult, templateResult] = await Promise.allSettled([
+          professionalService.getAll(),
+          notificationTemplateService.getAll(),
+        ]);
 
-      const loadedProfessionals = professionalResult.status === 'fulfilled' ? professionalResult.value : [];
-      setProfessionals(loadedProfessionals);
-      setTemplates(templateResult.status === 'fulfilled' ? templateResult.value : []);
+        const loadedProfessionals = professionalResult.status === 'fulfilled' ? professionalResult.value : [];
+        setProfessionals(loadedProfessionals);
+        setTemplates(templateResult.status === 'fulfilled' ? templateResult.value : []);
 
-      const currentProfessional = loadedProfessionals.find((item) => item.email?.toLowerCase() === user?.email?.toLowerCase());
-      const currentId = currentProfessional ? getProfessionalId(currentProfessional as Professional & Record<string, unknown>) : undefined;
-      const fallbackId = loadedProfessionals[0] ? getProfessionalId(loadedProfessionals[0] as Professional & Record<string, unknown>) : undefined;
-      const resourceId = selectedResourceId ?? currentId ?? fallbackId ?? null;
-      setSelectedResourceId(resourceId);
+        const currentProfessional = loadedProfessionals.find((item) => item.email?.toLowerCase() === user?.email?.toLowerCase());
+        const currentId = currentProfessional ? getProfessionalId(currentProfessional as Professional & Record<string, unknown>) : undefined;
+        const fallbackId = loadedProfessionals[0] ? getProfessionalId(loadedProfessionals[0] as Professional & Record<string, unknown>) : undefined;
+        const resourceId = selectedResourceId ?? currentId ?? fallbackId ?? null;
+        setSelectedResourceId(resourceId);
 
-      if (resourceId) {
-        await loadInbox(resourceId);
-      } else {
+        if (resourceId) {
+          await loadInbox(resourceId);
+        } else {
+          setInbox([]);
+          setPreferences([]);
+          setMessage({ type: 'warning', text: 'No hay profesionales creados. Para probar la bandeja, primero crea una ficha profesional en Recursos Humanos.' });
+        }
+        return;
+      }
+
+      const me = await professionalService.getMe();
+      if (!me) {
+        setHasOwnProfessional(false);
+        setProfessionals([]);
+        setSelectedResourceId(null);
         setInbox([]);
         setPreferences([]);
-        setMessage({ type: 'warning', text: 'No hay profesionales creados. Para probar la bandeja, primero crea una ficha profesional en Recursos Humanos.' });
+        setMessage({ type: 'warning', text: 'Tu cuenta todavía no tiene una ficha profesional vinculada, así que no hay notificaciones para mostrar.' });
+        return;
       }
+
+      setHasOwnProfessional(true);
+      setProfessionals([me]);
+      const myId = getProfessionalId(me as Professional & Record<string, unknown>) ?? null;
+      setSelectedResourceId(myId);
+      if (myId) await loadInbox(myId);
     } catch (error) {
       setMessage({ type: 'danger', text: error instanceof Error ? error.message : 'No se pudo cargar Notificaciones.' });
     } finally {
       setLoading(false);
     }
-  }, [loadInbox, selectedResourceId, user?.email]);
+  }, [isAdmin, loadInbox, selectedResourceId, user?.email]);
 
   useEffect(() => { loadPage(); }, [loadPage]);
 
@@ -248,37 +270,47 @@ export function NotificationsPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title"><IonIcon icon={notificationsOutline} />Notificaciones</h1>
-          <p className="page-subtitle">Bandeja, preferencias, plantillas y prueba de despachos del microservicio Notificaciones.</p>
+          <p className="page-subtitle">
+            {isAdmin
+              ? 'Bandeja, preferencias, plantillas y prueba de despachos del microservicio Notificaciones.'
+              : 'Tus notificaciones. El envío de pruebas, las plantillas y las preferencias son administradas por el admin de la plataforma.'}
+          </p>
         </div>
         <IonButton type="button" fill="outline" onClick={loadPage}>Actualizar</IonButton>
       </div>
 
       {message && <IonText color={message.type}><p>{message.text}</p></IonText>}
 
-      <IonCard className="app-card ion-margin-bottom">
-        <IonCardContent>
-          <IonItem>
-            <IonSelect
-              label="Ver bandeja de"
-              labelPlacement="stacked"
-              value={selectedResourceId ?? ''}
-              onIonChange={(event) => handleRecipientChange(Number(event.detail.value))}
-            >
-              {professionals.map((professional) => {
-                const id = getProfessionalId(professional as Professional & Record<string, unknown>);
-                return id ? <IonSelectOption key={id} value={id}>{professionalName(professional)} · #{id}</IonSelectOption> : null;
-              })}
-            </IonSelect>
-          </IonItem>
-          {selectedProfessional && <p className="muted ion-padding-start">Mostrando notificaciones de {professionalName(selectedProfessional)}.</p>}
-        </IonCardContent>
-      </IonCard>
+      {isAdmin ? (
+        <IonCard className="app-card ion-margin-bottom">
+          <IonCardContent>
+            <IonItem>
+              <IonSelect
+                label="Ver bandeja de"
+                labelPlacement="stacked"
+                value={selectedResourceId ?? ''}
+                onIonChange={(event) => handleRecipientChange(Number(event.detail.value))}
+              >
+                {professionals.map((professional) => {
+                  const id = getProfessionalId(professional as Professional & Record<string, unknown>);
+                  return id ? <IonSelectOption key={id} value={id}>{professionalName(professional)} · #{id}</IonSelectOption> : null;
+                })}
+              </IonSelect>
+            </IonItem>
+            {selectedProfessional && <p className="muted ion-padding-start">Mostrando notificaciones de {professionalName(selectedProfessional)}.</p>}
+          </IonCardContent>
+        </IonCard>
+      ) : (
+        hasOwnProfessional && selectedProfessional && (
+          <p className="muted ion-margin-bottom">Mostrando notificaciones de {professionalName(selectedProfessional)}.</p>
+        )
+      )}
 
       <IonSegment value={activeTab} scrollable onIonChange={(event) => setActiveTab((event.detail.value as TabValue) ?? 'inbox')}>
         <IonSegmentButton value="inbox">Bandeja ({inbox.length})</IonSegmentButton>
-        <IonSegmentButton value="send">Enviar prueba</IonSegmentButton>
-        <IonSegmentButton value="preferences">Preferencias</IonSegmentButton>
-        <IonSegmentButton value="templates">Plantillas ({templates.length})</IonSegmentButton>
+        {isAdmin && <IonSegmentButton value="send">Enviar prueba</IonSegmentButton>}
+        {isAdmin && <IonSegmentButton value="preferences">Preferencias</IonSegmentButton>}
+        {isAdmin && <IonSegmentButton value="templates">Plantillas ({templates.length})</IonSegmentButton>}
       </IonSegment>
 
       {activeTab === 'inbox' && (
@@ -306,7 +338,7 @@ export function NotificationsPage() {
         </IonCard>
       )}
 
-      {activeTab === 'send' && (
+      {isAdmin && activeTab === 'send' && (
         <IonCard className="app-card ion-margin-top">
           <IonCardHeader><IonCardTitle className="section-title"><IonIcon icon={paperPlaneOutline} />Enviar notificación de prueba</IonCardTitle></IonCardHeader>
           <IonCardContent>
@@ -330,7 +362,7 @@ export function NotificationsPage() {
         </IonCard>
       )}
 
-      {activeTab === 'preferences' && (
+      {isAdmin && activeTab === 'preferences' && (
         <IonCard className="app-card ion-margin-top">
           <IonCardHeader><IonCardTitle className="section-title"><IonIcon icon={settingsOutline} />Preferencias del destinatario</IonCardTitle></IonCardHeader>
           <IonCardContent>
@@ -353,7 +385,7 @@ export function NotificationsPage() {
         </IonCard>
       )}
 
-      {activeTab === 'templates' && (
+      {isAdmin && activeTab === 'templates' && (
         <div className="card-grid ion-margin-top">
           <IonCard className="app-card">
             <IonCardHeader><IonCardTitle className="section-title"><IonIcon icon={documentTextOutline} />Nueva plantilla</IonCardTitle></IonCardHeader>

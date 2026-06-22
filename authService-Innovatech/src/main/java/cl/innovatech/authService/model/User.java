@@ -36,6 +36,9 @@ public class User {
     @Column(name = "status", length = 20, nullable = false)
     private String status;
 
+    @Column(name = "role", length = 20, nullable = false)
+    private String role;
+
     @Column(name = "is_enabled", nullable = false)
     private Boolean enabled;
 
@@ -79,6 +82,10 @@ public class User {
             this.status = "ACTIVE";
         }
 
+        if (this.role == null || this.role.isBlank()) {
+            this.role = "MEMBER";
+        }
+
         if (this.enabled == null) {
             this.enabled = true;
         }
@@ -118,6 +125,10 @@ public class User {
 
     public String getStatus() {
         return status;
+    }
+
+    public String getRole() {
+        return role;
     }
 
     public Boolean getEnabled() {
@@ -162,6 +173,10 @@ public class User {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 
     public void setEnabled(Boolean enabled) {

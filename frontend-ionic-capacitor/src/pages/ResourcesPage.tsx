@@ -5,6 +5,7 @@ import { authService } from '../api/authService';
 import { professionalService } from '../api/resourcesService';
 import { ConfirmModal } from '../components/shared/ConfirmModal';
 import { ProfessionalModal } from '../components/resources/ProfessionalModal';
+import { useAuth } from '../hooks/useAuth';
 import type { User } from '../types/auth';
 import type { Professional } from '../types/resources';
 import { getProfessionalId } from '../utils/ids';
@@ -33,6 +34,8 @@ function mapUserToResource(user: User): DisplayResource {
 }
 
 export function ResourcesPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [authUsers, setAuthUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,7 +93,7 @@ export function ResourcesPage() {
       .filter((user) => !professionalEmails.has(user.email?.trim().toLowerCase()))
       .map(mapUserToResource);
 
-    return [...professionalItems, ...authOnlyItems];
+    return [...authOnlyItems, ...professionalItems];
   }, [professionals, authUsers]);
 
   const filtered = displayResources.filter((resource) => {
@@ -152,7 +155,7 @@ export function ResourcesPage() {
             {displayResources.length} recursos visibles · {professionals.length} profesionales · {authUsers.length} usuarios registrados
           </p>
         </div>
-        <IonButton type="button" onClick={openEmptyModal}>+ Agregar profesional</IonButton>
+        {isAdmin && <IonButton type="button" onClick={openEmptyModal}>+ Agregar profesional</IonButton>}
       </div>
 
       {error && <IonText color="danger"><p>{error}</p></IonText>}
@@ -233,22 +236,24 @@ export function ResourcesPage() {
                       </span>
                     )}
                   </div>
-                  <div className="card-actions">
-                    {resource.source === 'professional' ? (
-                      <>
-                        <IonButton type="button" size="small" fill="solid" color="primary" onClick={() => { setSelectedPro(resource); setInitialProfessionalData(null); setShowModal(true); }}>
-                          Editar
+                  {isAdmin && (
+                    <div className="card-actions">
+                      {resource.source === 'professional' ? (
+                        <>
+                          <IonButton type="button" size="small" fill="solid" color="primary" onClick={() => { setSelectedPro(resource); setInitialProfessionalData(null); setShowModal(true); }}>
+                            Editar
+                          </IonButton>
+                          <IonButton type="button" size="small" fill="outline" color="danger" onClick={() => setProToDelete(resource)}>
+                            Eliminar
+                          </IonButton>
+                        </>
+                      ) : (
+                        <IonButton type="button" size="small" fill="solid" color="primary" onClick={() => openProfessionalModalFromUser(resource)}>
+                          Crear ficha profesional
                         </IonButton>
-                        <IonButton type="button" size="small" fill="outline" color="danger" onClick={() => setProToDelete(resource)}>
-                          Eliminar
-                        </IonButton>
-                      </>
-                    ) : (
-                      <IonButton type="button" size="small" fill="solid" color="primary" onClick={() => openProfessionalModalFromUser(resource)}>
-                        Crear ficha profesional
-                      </IonButton>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  )}
                 </IonCardContent>
               </IonCard>
             );

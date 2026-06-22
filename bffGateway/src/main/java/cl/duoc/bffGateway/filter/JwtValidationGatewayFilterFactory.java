@@ -37,13 +37,15 @@ public class JwtValidationGatewayFilterFactory extends AbstractGatewayFilterFact
                 return exchange.getResponse().setComplete();
             }
 
-            // Inyectar userId y userName como headers para los microservicios
+            // Inyectar userId, userName y role como headers para los microservicios
             String userId   = jwtService.extractUserId(token);
             String userName = jwtService.extractUserName(token);
+            String role     = jwtService.extractRole(token);
 
             var request = exchange.getRequest().mutate()
                 .header("X-User-Id",   userId)
                 .header("X-User-Name", userName)
+                .header("X-User-Role", role != null ? role : "MEMBER")
                 .build();
 
             return chain.filter(exchange.mutate().request(request).build());

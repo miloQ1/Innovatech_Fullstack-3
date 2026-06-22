@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,6 +33,19 @@ public class ProfessionalController {
     @Operation(summary = "Listar profesionales", description = "Obtiene todos los profesionales registrados")
     public ResponseEntity<List<ProfessionalResponseDTO>> findAll() {
         return ResponseEntity.ok(professionalService.findAll());
+    }
+
+    @GetMapping("/me")
+    @Operation(summary = "Mi ficha profesional", description = "Obtiene la ficha profesional vinculada al usuario autenticado (employeeCode = userId)")
+    public ResponseEntity<ProfessionalResponseDTO> findMe(@RequestHeader(value = "X-User-Id", required = false) String userId) {
+        if (userId == null || userId.isBlank()) {
+            return ResponseEntity.notFound().build();
+        }
+        ProfessionalResponseDTO response = professionalService.findByEmployeeCode(userId);
+        if (response == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")

@@ -1,5 +1,7 @@
 // ===== Auth Types =====
 
+export type UserRole = 'ADMIN' | 'MEMBER';
+
 export interface User {
   id: string;
   userName: string;
@@ -7,6 +9,7 @@ export interface User {
   lastName: string;
   email: string;
   status: string;
+  role: UserRole;
   enabled: boolean;
   lastLoginAt: string | null;
   createdAt: string;
