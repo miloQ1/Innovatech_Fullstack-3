@@ -10,6 +10,7 @@ export const BACKEND_PORTS = {
   clientsService: 8087,
   filesService: 8088,
   auditService: 8089,
+  analiticaService: 8086,
   assignmentsService: 8091,
 } as const;
 
@@ -31,6 +32,12 @@ export const BACKEND_ROUTES = {
   attachments: '/api/attachments',
   mentions: '/api/mentions',
   activityLogs: '/api/activity-logs',
+  kpis: '/api/kpis',
+  snapshots: '/api/snapshots',
+  widgets: '/api/widgets',
+  alerts: '/api/alerts',
+  layouts: '/api/layouts',
+  layoutItems: '/api/layout-items',
   notifications: '/api/notifications',
   notificationTemplates: '/api/templates',
   notificationEvents: '/api/events',

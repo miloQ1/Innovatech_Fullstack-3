@@ -138,6 +138,21 @@ services:
       eureka-server:
         condition: service_started
 
+  analitica-service:
+    build: ./AnaliticaInnovatech-main
+    container_name: innovatech-analitica-service
+    ports:
+      - "8086:8086"
+    environment:
+      SERVER_PORT: 8086
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/analitica_db?useSSL=false&serverTimezone=America/Santiago
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+
   notificaciones:
     build: ./notificaciones/notificaciones
     container_name: innovatech-notificaciones
@@ -178,6 +193,8 @@ services:
       ms-archivos:
         condition: service_started
       ms-auditoria:
+        condition: service_started
+      analitica-service:
         condition: service_started
       notificaciones:
         condition: service_started

@@ -16,6 +16,7 @@ import { CreateProjectPage } from '../pages/CreateProjectPage';
 import { ProjectDetailPage } from '../pages/ProjectDetailPage';
 import { MyProjectsPage } from '../pages/MyProjectsPage';
 import { ResourcesPage } from '../pages/ResourcesPage';
+import { AnalyticsPage } from '../pages/AnalyticsPage';
 
 function protectedPage(page: ReactElement) {
   return (
@@ -46,6 +47,7 @@ export function AppRouter() {
           <Route exact path="/projects" render={() => protectedPage(<MyProjectsPage />)} />
           <Route exact path={"/projects/:id(\\d+)"} render={() => protectedPage(<ProjectDetailPage />)} />
           <Route exact path="/resources" render={() => protectedPage(<ResourcesPage />)} />
+          <Route exact path="/analytics" render={() => protectedPage(<AnalyticsPage />)} />
 
           <Route exact path="/" render={() => <Redirect to="/login" />} />
           <Route render={() => <Redirect to="/login" />} />

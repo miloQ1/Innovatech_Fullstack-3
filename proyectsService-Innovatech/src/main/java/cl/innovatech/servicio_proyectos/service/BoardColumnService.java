@@ -66,10 +66,10 @@ public class BoardColumnService {
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Fase no encontrada"));
 
         String[][] defaults = {
-            {"To Do",      "#94a3b8", "TODO"},
-            {"In Progress","#4f46e5", "IN_PROGRESS"},
-            {"In Review",  "#d97706", "IN_REVIEW"},
-            {"Done",       "#059669", "DONE"},
+            {"Por Hacer",   "#94a3b8", "TODO"},
+            {"En Progreso", "#4f46e5", "IN_PROGRESS"},
+            {"Hecho",       "#059669", "DONE"},
+            {"Cerrado",     "#64748b", "CANCELLED"},
         };
 
         for (int i = 0; i < defaults.length; i++) {

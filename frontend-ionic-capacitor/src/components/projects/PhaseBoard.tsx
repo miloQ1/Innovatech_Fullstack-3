@@ -129,7 +129,7 @@ export function PhaseBoard({ phase, tasks, projectId, onTasksChange }: PhaseBoar
               <IonItem>
                 <IonSelect label="Estado asociado" labelPlacement="stacked" value={colStatus} onIonChange={(e) => setColStatus(String(e.detail.value ?? ''))}>
                   <IonSelectOption value="">Sin asociación</IonSelectOption>
-                  {taskStatuses.map((status) => <IonSelectOption key={status} value={status}>{status.replace(/_/g, ' ')}</IonSelectOption>)}
+                  {taskStatuses.map((status) => <IonSelectOption key={status} value={status}>{formatStatus(status)}</IonSelectOption>)}
                 </IonSelect>
               </IonItem>
               <IonButton type="submit">Guardar columna</IonButton>
