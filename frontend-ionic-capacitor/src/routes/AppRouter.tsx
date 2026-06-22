@@ -16,6 +16,9 @@ import { CreateProjectPage } from '../pages/CreateProjectPage';
 import { ProjectDetailPage } from '../pages/ProjectDetailPage';
 import { MyProjectsPage } from '../pages/MyProjectsPage';
 import { ResourcesPage } from '../pages/ResourcesPage';
+import { NotificationsPage } from '../pages/NotificationsPage';
+import { CollaborationPage } from '../pages/CollaborationPage';
+import { AnalyticsPage } from '../pages/AnalyticsPage';
 
 function protectedPage(page: ReactElement) {
   return (
@@ -46,6 +49,9 @@ export function AppRouter() {
           <Route exact path="/projects" render={() => protectedPage(<MyProjectsPage />)} />
           <Route exact path={"/projects/:id(\\d+)"} render={() => protectedPage(<ProjectDetailPage />)} />
           <Route exact path="/resources" render={() => protectedPage(<ResourcesPage />)} />
+          <Route exact path="/notifications" render={() => protectedPage(<NotificationsPage />)} />
+          <Route exact path="/collaboration" render={() => protectedPage(<CollaborationPage />)} />
+          <Route exact path="/analytics" render={() => protectedPage(<AnalyticsPage />)} />
 
           <Route exact path="/" render={() => <Redirect to="/login" />} />
           <Route render={() => <Redirect to="/login" />} />
