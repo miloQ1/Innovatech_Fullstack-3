@@ -19,7 +19,7 @@ import {
   IonTextarea,
 } from '@ionic/react';
 import { IonIcon } from '@ionic/react';
-import { informationCircleOutline, chevronDownOutline, chevronUpOutline } from 'ionicons/icons';
+import { informationCircleOutline, chevronBackOutline, chevronDownOutline, chevronUpOutline } from 'ionicons/icons';
 import { apiClient } from '../api/apiClient';
 import { projectService, taskService, phaseService } from '../api/projectService';
 import { assignmentService, professionalService } from '../api/resourcesService';
@@ -224,7 +224,7 @@ export function ProjectDetailPage() {
   return (
     <div>
       <Link to={clientId ? `/clients/${clientId}` : '/projects'} className="back-link">
-        <IonIcon icon={chevronDownOutline} className="back-link-icon" />
+        <IonIcon icon={chevronBackOutline} className="back-link-icon" />
         {clientName}
       </Link>
       <div className="page-header ion-margin-top">
