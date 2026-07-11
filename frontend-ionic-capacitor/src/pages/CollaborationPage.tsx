@@ -358,7 +358,7 @@ export function CollaborationPage() {
           </IonCard>
 
           {!selectedThread && (
-            <div className="card-grid ion-margin-top">
+            <div className="section-bg card-grid ion-margin-top">
               <IonCard className="app-card">
                 <IonCardHeader><IonCardTitle className="section-title"><IonIcon icon={chatbubblesOutline} />Nuevo hilo</IonCardTitle></IonCardHeader>
                 <IonCardContent>

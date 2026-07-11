@@ -51,7 +51,7 @@ export function ClientsPage() {
       {clients.length === 0 ? (
         <EmptyState icon={businessOutline} title="No hay clientes" description="Crea tu primer cliente para comenzar a gestionar proyectos." actionLabel="Crear cliente" onAction={() => navigate('/clients/create')} />
       ) : (
-        <div className="card-grid">
+        <div className="section-bg card-grid">
           {clients.map((client) => {
             const clientId = getClientId(client as Client & Record<string, unknown>);
             return (

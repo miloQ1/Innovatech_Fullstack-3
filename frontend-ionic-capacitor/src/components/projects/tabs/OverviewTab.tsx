@@ -17,24 +17,28 @@ function badgeColor(status: string) {
   return 'primary';
 }
 
+export function InfoTab({ project }: Pick<OverviewTabProps, 'project'>) {
+  return (
+    <IonCard className="app-card">
+      <IonCardHeader><IonCardTitle className="section-title"><IonIcon icon={informationCircleOutline} />Información del proyecto</IonCardTitle></IonCardHeader>
+      <IonCardContent>
+        <div className="form-grid">
+          <p><strong>Nombre:</strong><br />{project.name}</p>
+          <p><strong>Código:</strong><br />#{project.code}</p>
+          <p><strong>Cliente:</strong><br />{project.client?.name ?? (project.clientId ? `Cliente #${project.clientId}` : 'Sin cliente')}</p>
+          <p><strong>Estado:</strong><br /><IonBadge color={badgeColor(project.status)}>{formatStatus(project.status)}</IonBadge></p>
+          {project.startDate && <p><strong>Inicio:</strong><br />{project.startDate}</p>}
+          {project.endDate && <p><strong>Término:</strong><br />{project.endDate}</p>}
+        </div>
+        {project.description && <p className="muted">{project.description}</p>}
+      </IonCardContent>
+    </IonCard>
+  );
+}
+
 export function OverviewTab({ project, phases, tasks, onTabChange }: OverviewTabProps) {
   return (
     <>
-      <IonCard className="app-card">
-        <IonCardHeader><IonCardTitle className="section-title"><IonIcon icon={informationCircleOutline} />Información del proyecto</IonCardTitle></IonCardHeader>
-        <IonCardContent>
-          <div className="form-grid">
-            <p><strong>Nombre:</strong><br />{project.name}</p>
-            <p><strong>Código:</strong><br />#{project.code}</p>
-            <p><strong>Cliente:</strong><br />{project.client?.name ?? (project.clientId ? `Cliente #${project.clientId}` : 'Sin cliente')}</p>
-            <p><strong>Estado:</strong><br /><IonBadge color={badgeColor(project.status)}>{formatStatus(project.status)}</IonBadge></p>
-            {project.startDate && <p><strong>Inicio:</strong><br />{project.startDate}</p>}
-            {project.endDate && <p><strong>Término:</strong><br />{project.endDate}</p>}
-          </div>
-          {project.description && <p className="muted">{project.description}</p>}
-        </IonCardContent>
-      </IonCard>
-
       <div className="stat-grid">
         <IonCard className="app-card">
           <IonCardContent className="stat-card">

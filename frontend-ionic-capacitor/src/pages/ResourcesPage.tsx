@@ -182,7 +182,7 @@ export function ResourcesPage() {
       {filtered.length === 0 ? (
         <IonCard className="app-card ion-text-center"><IonCardContent><p className="muted">No hay recursos para mostrar.</p></IonCardContent></IonCard>
       ) : (
-        <div className="card-grid">
+        <div className="section-bg card-grid">
           {filtered.map((resource) => {
             const id = getProfessionalId(resource as unknown as Professional & Record<string, unknown>);
             const key = resource.source === 'auth-user' ? `user-${resource.authUserId}` : `pro-${id ?? resource.email}`;

@@ -11,11 +11,12 @@ interface PhasesTabProps {
   phases: Phase[];
   tasks: Task[];
   projectId: number;
-  onReload: () => void;
+  onPhaseChange: () => void;
+  onTaskChange: () => void;
   onTabChange: (tab: string) => void;
 }
 
-export function PhasesTab({ phases, tasks, projectId, onReload, onTabChange }: PhasesTabProps) {
+export function PhasesTab({ phases, tasks, projectId, onPhaseChange, onTaskChange, onTabChange }: PhasesTabProps) {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [editingPhaseId, setEditingPhaseId] = useState<number | null>(null);
   const [editPhaseName, setEditPhaseName] = useState('');
@@ -25,6 +26,26 @@ export function PhasesTab({ phases, tasks, projectId, onReload, onTabChange }: P
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [phaseToDelete, setPhaseToDelete] = useState<Phase | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+  const [showPhaseForm, setShowPhaseForm] = useState(false);
+  const [phaseName, setPhaseName] = useState('');
+  const [phaseStart, setPhaseStart] = useState('');
+  const [phaseEnd, setPhaseEnd] = useState('');
+
+  const handleAddPhase = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const newPhase = await phaseService.create(projectId, {
+      name: phaseName,
+      sequenceOrder: phases.length + 1,
+      plannedStart: phaseStart || undefined,
+      plannedEnd: phaseEnd || undefined,
+    });
+    setPhaseName('');
+    setPhaseStart('');
+    setPhaseEnd('');
+    setShowPhaseForm(false);
+    onPhaseChange();
+    onTabChange(String(newPhase.phaseId));
+  };
 
   const startEditPhase = (phase: Phase) => {
     setEditingPhaseId(phase.phaseId);
@@ -42,7 +63,7 @@ export function PhasesTab({ phases, tasks, projectId, onReload, onTabChange }: P
       plannedEnd: editPhaseEnd || undefined,
     });
     setEditingPhaseId(null);
-    onReload();
+    onPhaseChange();
   };
 
   const handleQuickAddTask = async (event: React.FormEvent, phaseId: number) => {
@@ -51,29 +72,48 @@ export function PhasesTab({ phases, tasks, projectId, onReload, onTabChange }: P
     await taskService.create(projectId, { title: newTaskTitle.trim(), priority: null, status: 'TODO', phaseId } as any);
     setNewTaskTitle('');
     setAddingTaskToPhase(null);
-    onReload();
+    onTaskChange();
   };
 
   const confirmDeletePhase = async () => {
     if (!phaseToDelete) return;
     await phaseService.delete(phaseToDelete.phaseId).catch(() => undefined);
     setPhaseToDelete(null);
-    onReload();
+    onPhaseChange();
   };
 
   const confirmDeleteTask = async () => {
     if (!taskToDelete) return;
     await taskService.deleteTask(taskToDelete.taskId).catch(() => undefined);
     setTaskToDelete(null);
-    onReload();
+    onTaskChange();
   };
-
-  if (phases.length === 0) {
-    return <IonCard className="app-card"><IonCardContent><p className="muted">No hay fases todavía. Usa “Agregar fase” para comenzar.</p></IonCardContent></IonCard>;
-  }
 
   return (
     <>
+      <div className="button-row ion-margin-bottom">
+        <IonButton type="button" fill="outline" onClick={() => setShowPhaseForm((v) => !v)}>
+          {showPhaseForm ? 'Cancelar' : '+ Agregar fase'}
+        </IonButton>
+      </div>
+
+      {showPhaseForm && (
+        <IonCard className="app-card ion-margin-bottom">
+          <IonCardContent>
+            <form onSubmit={handleAddPhase} className="form-grid">
+              <IonItem><IonInput label="Nombre de fase" labelPlacement="stacked" value={phaseName} required onIonInput={(e) => setPhaseName(String(e.detail.value ?? ''))} /></IonItem>
+              <IonItem><IonInput label="Inicio" labelPlacement="stacked" type="date" value={phaseStart} onIonInput={(e) => setPhaseStart(String(e.detail.value ?? ''))} /></IonItem>
+              <IonItem><IonInput label="Término" labelPlacement="stacked" type="date" value={phaseEnd} onIonInput={(e) => setPhaseEnd(String(e.detail.value ?? ''))} /></IonItem>
+              <IonButton type="submit">Guardar fase</IonButton>
+            </form>
+          </IonCardContent>
+        </IonCard>
+      )}
+
+      {phases.length === 0 && !showPhaseForm && (
+        <IonCard className="app-card"><IonCardContent><p className="muted">No hay fases todavía. Usa "Agregar fase" para comenzar.</p></IonCardContent></IonCard>
+      )}
+
       {phases.map((phase) => {
         const phaseTasks = tasks.filter((task) => task.phaseId === phase.phaseId);
         const done = phaseTasks.filter((task) => task.status === 'DONE').length;
@@ -134,7 +174,7 @@ export function PhasesTab({ phases, tasks, projectId, onReload, onTabChange }: P
         );
       })}
 
-      {selectedTask && <TaskModal task={selectedTask} projectId={projectId} onClose={() => setSelectedTask(null)} onUpdate={() => { onReload(); setSelectedTask(null); }} onDelete={() => { onReload(); setSelectedTask(null); }} />}
+      {selectedTask && <TaskModal task={selectedTask} projectId={projectId} onClose={() => setSelectedTask(null)} onUpdate={() => { onTaskChange(); setSelectedTask(null); }} onDelete={() => { onTaskChange(); setSelectedTask(null); }} />}
       {phaseToDelete && <ConfirmModal title={`Eliminar fase "${phaseToDelete.name}"`} message="Esta acción eliminará la fase y sus tareas." confirmLabel="Eliminar" danger onConfirm={confirmDeletePhase} onCancel={() => setPhaseToDelete(null)} />}
       {taskToDelete && <ConfirmModal title={`Eliminar tarea "${taskToDelete.title}"`} message="Esta acción eliminará la tarea permanentemente." confirmLabel="Eliminar" danger onConfirm={confirmDeleteTask} onCancel={() => setTaskToDelete(null)} />}
     </>

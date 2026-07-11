@@ -196,7 +196,8 @@ export function NotificationsPage() {
       </IonSegment>
 
       {activeTab === 'inbox' && (
-        <IonCard className="app-card ion-margin-top">
+        <div className="section-bg">
+        <IonCard className="app-card">
           <IonCardHeader><IonCardTitle className="section-title"><IonIcon icon={mailOutline} />Mi bandeja de entrada</IonCardTitle></IonCardHeader>
           <IonCardContent>
             {inbox.length === 0 ? (
@@ -218,20 +219,24 @@ export function NotificationsPage() {
             )}
           </IonCardContent>
         </IonCard>
+        </div>
       )}
 
       {activeTab === 'test' && (
-        <IonCard className="app-card ion-margin-top">
+        <div className="section-bg">
+        <IonCard className="app-card">
           <IonCardHeader><IonCardTitle className="section-title"><IonIcon icon={paperPlaneOutline} />Enviar prueba a mi bandeja</IonCardTitle></IonCardHeader>
           <IonCardContent>
             <p className="muted">Esta acción crea una notificación IN_APP solo para tu usuario logeado.</p>
             <IonButton type="button" onClick={handleSendTest} disabled={saving}>{saving ? 'Enviando...' : 'Enviar notificación de prueba'}</IonButton>
           </IonCardContent>
         </IonCard>
+        </div>
       )}
 
       {activeTab === 'preferences' && (
-        <IonCard className="app-card ion-margin-top">
+        <div className="section-bg">
+        <IonCard className="app-card">
           <IonCardHeader><IonCardTitle className="section-title"><IonIcon icon={settingsOutline} />Mis preferencias</IonCardTitle></IonCardHeader>
           <IonCardContent>
             <IonList inset>
@@ -251,10 +256,11 @@ export function NotificationsPage() {
             </IonList>
           </IonCardContent>
         </IonCard>
+        </div>
       )}
 
       {isAdmin && activeTab === 'templates' && (
-        <div className="card-grid ion-margin-top">
+        <div className="section-bg card-grid ion-margin-top">
           <IonCard className="app-card">
             <IonCardHeader><IonCardTitle className="section-title"><IonIcon icon={documentTextOutline} />Nueva plantilla</IonCardTitle></IonCardHeader>
             <IonCardContent>

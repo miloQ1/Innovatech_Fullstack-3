@@ -7,5 +7,5 @@ interface ProjectListProps {
 }
 
 export function ProjectList({ projects }: ProjectListProps) {
-  return <div className="card-grid">{projects.map((project) => <ProjectCard key={getProjectId(project as Project & Record<string, unknown>) ?? project.code} project={project} />)}</div>;
+  return <div className="section-bg card-grid">{projects.map((project) => <ProjectCard key={getProjectId(project as Project & Record<string, unknown>) ?? project.code} project={project} />)}</div>;
 }

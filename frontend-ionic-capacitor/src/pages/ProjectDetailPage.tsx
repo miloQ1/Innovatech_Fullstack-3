@@ -18,10 +18,12 @@ import {
   IonText,
   IonTextarea,
 } from '@ionic/react';
+import { IonIcon } from '@ionic/react';
+import { informationCircleOutline, chevronDownOutline, chevronUpOutline } from 'ionicons/icons';
 import { apiClient } from '../api/apiClient';
-import { phaseService, projectService, taskService } from '../api/projectService';
+import { projectService, taskService, phaseService } from '../api/projectService';
 import { assignmentService, professionalService } from '../api/resourcesService';
-import { OverviewTab } from '../components/projects/tabs/OverviewTab';
+import { InfoTab } from '../components/projects/tabs/OverviewTab';
 import { PhasesTab } from '../components/projects/tabs/PhasesTab';
 import { AssignmentsTab } from '../components/projects/tabs/AssignmentsTab';
 import { PhaseBoard } from '../components/projects/PhaseBoard';
@@ -51,11 +53,8 @@ export function ProjectDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('overview');
-  const [showPhaseForm, setShowPhaseForm] = useState(false);
-  const [phaseName, setPhaseName] = useState('');
-  const [phaseStart, setPhaseStart] = useState('');
-  const [phaseEnd, setPhaseEnd] = useState('');
+  const [activeTab, setActiveTab] = useState('phases');
+  const [infoExpanded, setInfoExpanded] = useState(true);
   const [isEditingProject, setIsEditingProject] = useState(false);
   const [projectForm, setProjectForm] = useState({ code: '', name: '', description: '', status: 'IN_PROGRESS' as ProjectStatus, startDate: '', endDate: '', budget: '' });
   const [savingProject, setSavingProject] = useState(false);
@@ -133,6 +132,24 @@ export function ProjectDetailPage() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  const reloadTasks = useCallback(async () => {
+    if (!projectId) return;
+    const result = await taskService.getByProject(projectId).catch(() => null);
+    if (result) setTasks(result);
+  }, [projectId]);
+
+  const reloadPhases = useCallback(async () => {
+    if (!projectId) return;
+    const result = await phaseService.getByProject(projectId).catch(() => null);
+    if (result) setPhases(result.sort((a, b) => (a.sequenceOrder ?? 0) - (b.sequenceOrder ?? 0)));
+  }, [projectId]);
+
+  const reloadAssignments = useCallback(async () => {
+    if (!projectId) return;
+    const result = await assignmentService.getByProject(projectId).catch(() => null);
+    if (result) setAssignments(result);
+  }, [projectId]);
+
   const updateProjectForm = (field: keyof typeof projectForm, value: string) => {
     setProjectForm((current) => ({ ...current, [field]: value }));
   };
@@ -185,27 +202,6 @@ export function ProjectDetailPage() {
     }
   };
 
-  const handleAddPhase = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!projectId) return;
-    try {
-      const newPhase = await phaseService.create(projectId, {
-        name: phaseName,
-        sequenceOrder: phases.length + 1,
-        plannedStart: phaseStart || undefined,
-        plannedEnd: phaseEnd || undefined,
-      });
-      setPhaseName('');
-      setPhaseStart('');
-      setPhaseEnd('');
-      setShowPhaseForm(false);
-      await loadData();
-      setActiveTab(String(newPhase.phaseId));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo crear la fase');
-    }
-  };
-
   if (isLoading) return <div className="ion-text-center ion-padding"><IonSpinner /><p className="muted">Cargando proyecto...</p></div>;
 
   if (!project || !projectId) {
@@ -227,7 +223,10 @@ export function ProjectDetailPage() {
 
   return (
     <div>
-      <Link to={clientId ? `/clients/${clientId}` : '/projects'}>← {clientName}</Link>
+      <Link to={clientId ? `/clients/${clientId}` : '/projects'} className="back-link">
+        <IonIcon icon={chevronDownOutline} className="back-link-icon" />
+        {clientName}
+      </Link>
       <div className="page-header ion-margin-top">
         <div>
           <h1 className="page-title">{project.name}</h1>
@@ -267,43 +266,43 @@ export function ProjectDetailPage() {
       )}
 
       {!isEditingProject && (
-        <div className="inline-row ion-margin-bottom">
-          <span className="muted">Cambiar estado:</span>
-          <IonSelect interface="popover" value={project.status} onIonChange={(e) => handleStatusChange(e.detail.value as ProjectStatus)}>
-            {projectStatuses.map((status) => <IonSelectOption key={status} value={status}>{formatStatus(status)}</IonSelectOption>)}
-          </IonSelect>
+        <div className="project-info-panel">
+          <button
+            type="button"
+            className="project-info-toggle"
+            onClick={() => setInfoExpanded((v) => !v)}
+          >
+            <span className="project-info-toggle-left">
+              <span className="project-info-toggle-icon">
+                <IonIcon icon={informationCircleOutline} />
+              </span>
+              Información del proyecto
+            </span>
+            <IonIcon icon={infoExpanded ? chevronUpOutline : chevronDownOutline} className="project-info-chevron-icon" />
+          </button>
+          {infoExpanded && (
+            <div className="project-info-body">
+              <InfoTab project={project} />
+              <div className="inline-row" style={{ marginTop: 10, marginBottom: 16 }}>
+                <span className="muted" style={{ fontSize: '0.875rem' }}>Cambiar estado:</span>
+                <IonSelect interface="popover" value={project.status} onIonChange={(e) => handleStatusChange(e.detail.value as ProjectStatus)}>
+                  {projectStatuses.map((status) => <IonSelectOption key={status} value={status}>{formatStatus(status)}</IonSelectOption>)}
+                </IonSelect>
+              </div>
+              <AssignmentsTab projectId={projectId} assignments={assignments} professionals={professionals} onReload={reloadAssignments} />
+            </div>
+          )}
         </div>
       )}
 
-      <IonSegment value={activeTab} scrollable onIonChange={(e) => setActiveTab(String(e.detail.value ?? 'overview'))}>
-        <IonSegmentButton value="overview">Resumen</IonSegmentButton>
+      <IonSegment value={activeTab} scrollable onIonChange={(e) => setActiveTab(String(e.detail.value ?? 'phases'))}>
         <IonSegmentButton value="phases">Fases ({phases.length})</IonSegmentButton>
         {phases.map((phase) => <IonSegmentButton key={phase.phaseId} value={String(phase.phaseId)}>{phase.name}</IonSegmentButton>)}
-        <IonSegmentButton value="assignments">Asignaciones ({assignments.length})</IonSegmentButton>
       </IonSegment>
 
-      <div className="button-row ion-margin-top">
-        <IonButton type="button" fill="outline" onClick={() => setShowPhaseForm((value) => !value)}>{showPhaseForm ? 'Cancelar fase' : '+ Agregar fase'}</IonButton>
-      </div>
-
-      {showPhaseForm && (
-        <IonCard className="app-card">
-          <IonCardContent>
-            <form onSubmit={handleAddPhase} className="form-grid">
-              <IonItem><IonInput label="Nombre de fase" labelPlacement="stacked" value={phaseName} required onIonInput={(e) => setPhaseName(String(e.detail.value ?? ''))} /></IonItem>
-              <IonItem><IonInput label="Inicio" labelPlacement="stacked" type="date" value={phaseStart} onIonInput={(e) => setPhaseStart(String(e.detail.value ?? ''))} /></IonItem>
-              <IonItem><IonInput label="Término" labelPlacement="stacked" type="date" value={phaseEnd} onIonInput={(e) => setPhaseEnd(String(e.detail.value ?? ''))} /></IonItem>
-              <IonButton type="submit">Guardar fase</IonButton>
-            </form>
-          </IonCardContent>
-        </IonCard>
-      )}
-
       <div className="ion-margin-top">
-        {activeTab === 'overview' && <OverviewTab project={project} phases={phases} tasks={tasks} onTabChange={setActiveTab} />}
-        {activeTab === 'phases' && <PhasesTab phases={phases} tasks={tasks} projectId={projectId} onReload={loadData} onTabChange={setActiveTab} />}
-        {activeTab === 'assignments' && <AssignmentsTab projectId={projectId} assignments={assignments} professionals={professionals} onReload={loadData} />}
-        {activePhase && <PhaseBoard phase={activePhase} tasks={phaseTasks} projectId={projectId} onTasksChange={loadData} />}
+        {activeTab === 'phases' && <PhasesTab phases={phases} tasks={tasks} projectId={projectId} onPhaseChange={reloadPhases} onTaskChange={reloadTasks} onTabChange={setActiveTab} />}
+        {activePhase && <PhaseBoard phase={activePhase} tasks={phaseTasks} projectId={projectId} onTasksChange={reloadTasks} />}
       </div>
 
       {confirmDelete && <ConfirmModal title={`Eliminar proyecto "${project.name}"`} message="Esta acción eliminará el proyecto y sus datos asociados si el backend lo permite." confirmLabel="Eliminar" danger onConfirm={handleDeleteProject} onCancel={() => setConfirmDelete(false)} />}

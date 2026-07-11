@@ -82,6 +82,7 @@ export function AnalyticsPage() {
 
       {error && <IonText color="danger"><p>{error}</p></IonText>}
 
+      <div className="section-bg">
       <IonCard className="app-card">
         <IonCardHeader><IonCardTitle className="section-title">KPIs</IonCardTitle></IonCardHeader>
         <IonCardContent>
@@ -103,6 +104,7 @@ export function AnalyticsPage() {
           ))}
         </IonCardContent>
       </IonCard>
+      </div>
 
       <div className="page-header ion-margin-top">
         <h2 className="page-title" style={{ fontSize: '1.3rem' }}>Widgets</h2>
@@ -112,7 +114,7 @@ export function AnalyticsPage() {
       {widgets.length === 0 ? (
         <IonCard className="app-card ion-text-center"><IonCardContent><p className="muted">No hay widgets configurados aún.</p></IonCardContent></IonCard>
       ) : (
-        <div className="card-grid">
+        <div className="section-bg card-grid">
           {widgets.map((widget) => (
             <WidgetCard
               key={widget.widgetId}
